@@ -7,6 +7,7 @@ import com.ruppyrup.lance.broker.LanceBroker;
 import com.ruppyrup.lance.models.LanceMessage;
 import com.ruppyrup.lance.models.Message;
 import com.ruppyrup.lance.models.Topic;
+import com.ruppyrup.lance.subscribers.Subscriber;
 import com.ruppyrup.lance.transceivers.Transceiver;
 import java.util.ArrayList;
 import java.util.List;
@@ -128,6 +129,52 @@ class BrokerTest {
       Assertions.assertEquals(2, udpTransceiver.getSendCount());
     }
 
+    @Test
+    void testBrokerSendsStoredMessagesFromTheDifferentTopics() {
+      setTransceiverMessageString(topic1, expected1);
+      lanceBroker.receive();
+      setTransceiverMessageString(topic2, expected2);
+      lanceBroker.receive();
+      lanceBroker.send();
+      Assertions.assertEquals(2, udpTransceiver.getSendCount());
+    }
+  }
+
+  @Nested
+  @DisplayName("Subscriber Tests")
+  class SubscriberTests {
+
+    private final String expected1 = "expected1";
+    private final String expected2 = "expected2";
+    private Topic topic1;
+    private Topic topic2;
+
+    @BeforeEach
+    private void setup() {
+      udpTransceiver = new MockTransceiver();
+      lanceBroker = LanceBroker.getInstance();
+      lanceBroker.setTransceiver(udpTransceiver);
+      topic1 = new Topic("Test1");
+      topic2 = new Topic("Test2");
+    }
+
+    @Test
+    void testRegisterSubscriber() {
+      Subscriber subscriber = new MockSubscriber();
+      lanceBroker.register(topic1, subscriber);
+      Assertions.assertTrue(lanceBroker.getSubscribers().containsKey(topic1));
+      Assertions.assertTrue(lanceBroker.getSubscribers().containsValue(subscriber));
+    }
+
+    @Test
+    void testRegisterMultipleSubscribers() {
+      Subscriber subscriber1 = new MockSubscriber();
+      Subscriber subscriber2 = new MockSubscriber();
+      lanceBroker.register(topic1, subscriber1);
+      lanceBroker.register(topic2, subscriber2);
+      Assertions.assertEquals(subscriber1, lanceBroker.getSubscribers().get(topic1));
+      Assertions.assertEquals(subscriber2, lanceBroker.getSubscribers().get(topic2));
+    }
   }
 }
 
@@ -164,5 +211,15 @@ class MockTransceiver implements Transceiver {
   public void setMessage(Message message) {
     messages.add(message);
     messageCount++;
+  }
+}
+
+class MockSubscriber implements Subscriber {
+
+  int port = 8888;
+
+  @Override
+  public int getPort() {
+    return 0;
   }
 }

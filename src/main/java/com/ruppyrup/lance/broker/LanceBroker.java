@@ -2,13 +2,11 @@ package com.ruppyrup.lance.broker;
 
 import com.ruppyrup.lance.models.Message;
 import com.ruppyrup.lance.models.Topic;
+import com.ruppyrup.lance.subscribers.Subscriber;
 import com.ruppyrup.lance.transceivers.Transceiver;
-import java.util.ArrayDeque;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Queue;
 
@@ -17,6 +15,7 @@ public class LanceBroker implements Broker {
   private static LanceBroker lanceBrokerInstance;
   private Transceiver transceiver;
   private final Map<Topic, Queue<Message>> receivedMessages = new HashMap<>();
+  private final Map<Topic, Subscriber> subscribers = new HashMap<>();
 
   private LanceBroker() {
   }
@@ -53,6 +52,11 @@ public class LanceBroker implements Broker {
   }
 
   @Override
+  public void register(Topic topic, Subscriber subscriber) {
+    subscribers.put(topic, subscriber);
+  }
+
+  @Override
   public void setTransceiver(Transceiver transceiver) {
     this.transceiver = transceiver;
   }
@@ -60,5 +64,10 @@ public class LanceBroker implements Broker {
   @Override
   public Optional<Message> getNextMessageForTopic(Topic topic) {
     return Optional.ofNullable(receivedMessages.get(topic).poll());
+  }
+
+  @Override
+  public Map<Topic, Subscriber> getSubscribers() {
+    return subscribers;
   }
 }

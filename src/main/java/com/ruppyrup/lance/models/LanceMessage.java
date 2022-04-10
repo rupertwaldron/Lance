@@ -1,5 +1,9 @@
 package com.ruppyrup.lance.models;
 
+import java.util.Objects;
+import lombok.NoArgsConstructor;
+
+@NoArgsConstructor
 public class LanceMessage implements Message {
   private String contents;
   private Topic topic;
@@ -30,5 +34,29 @@ public class LanceMessage implements Message {
         "contents='" + contents + '\'' +
         ", topic=" + topic +
         '}';
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+
+    LanceMessage that = (LanceMessage) o;
+
+    if (!Objects.equals(contents, that.contents)) {
+      return false;
+    }
+    return Objects.equals(topic, that.topic);
+  }
+
+  @Override
+  public int hashCode() {
+    int result = contents != null ? contents.hashCode() : 0;
+    result = 31 * result + (topic != null ? topic.hashCode() : 0);
+    return result;
   }
 }

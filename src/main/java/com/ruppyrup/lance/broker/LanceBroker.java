@@ -4,6 +4,7 @@ import com.ruppyrup.lance.models.Message;
 import com.ruppyrup.lance.models.Topic;
 import com.ruppyrup.lance.subscribers.Subscriber;
 import com.ruppyrup.lance.transceivers.Transceiver;
+import com.ruppyrup.lance.transceivers.UdpTransceiver;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -11,9 +12,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Queue;
+import java.util.logging.Logger;
 
 public class LanceBroker implements Broker {
 
+  private static final Logger LOGGER = Logger.getLogger(LanceBroker.class.getName());
   private static LanceBroker lanceBrokerInstance;
   private Transceiver transceiver;
   private final Map<Topic, Queue<Message>> receivedMessages = new HashMap<>();
@@ -32,7 +35,7 @@ public class LanceBroker implements Broker {
   @Override
   public void receive() {
     Message message = transceiver.receive();
-
+    LOGGER.info("Message received :: " + message.getContents());
     Topic topic = message.getTopic();
 
     if (!receivedMessages.containsKey(topic)) {

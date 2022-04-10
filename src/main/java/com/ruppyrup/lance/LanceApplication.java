@@ -1,13 +1,23 @@
 package com.ruppyrup.lance;
 
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
+import com.ruppyrup.lance.broker.Broker;
+import com.ruppyrup.lance.broker.LanceBroker;
+import com.ruppyrup.lance.transceivers.Transceiver;
+import com.ruppyrup.lance.transceivers.UdpTransceiver;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
+import java.net.SocketException;
+import java.net.UnknownHostException;
 
-@SpringBootApplication
 public class LanceApplication {
 
-  public static void main(String[] args) {
-    SpringApplication.run(LanceApplication.class, args);
+  public static void main(String[] args) throws SocketException, UnknownHostException {
+    System.out.println("Starting main....");
+    Broker broker = LanceBroker.getInstance();
+    DatagramSocket socket = new DatagramSocket(8089);
+    Transceiver transceiver = new UdpTransceiver(socket, InetAddress.getLocalHost());
+    broker.setTransceiver(transceiver);
+    broker.receive();
   }
 
 }

@@ -4,8 +4,10 @@ import com.ruppyrup.lance.models.Message;
 import com.ruppyrup.lance.models.Topic;
 import com.ruppyrup.lance.subscribers.Subscriber;
 import com.ruppyrup.lance.transceivers.Transceiver;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Queue;
@@ -15,7 +17,7 @@ public class LanceBroker implements Broker {
   private static LanceBroker lanceBrokerInstance;
   private Transceiver transceiver;
   private final Map<Topic, Queue<Message>> receivedMessages = new HashMap<>();
-  private final Map<Topic, Subscriber> subscribers = new HashMap<>();
+  private final Map<Topic, List<Subscriber>> subscribers = new HashMap<>();
 
   private LanceBroker() {
   }
@@ -46,14 +48,23 @@ public class LanceBroker implements Broker {
   public void send() {
     for(var entry : receivedMessages.entrySet()) {
       while(!entry.getValue().isEmpty()) {
-        transceiver.send(entry.getValue().poll());
+        Message message = entry.getValue().poll();
+        List<Subscriber> subList = subscribers.get(message.getTopic());
+        transceiver.send(message, subList);
       }
     }
   }
 
   @Override
   public void register(Topic topic, Subscriber subscriber) {
-    subscribers.put(topic, subscriber);
+    if (subscribers.containsKey(topic)) {
+      subscribers.get(topic).add(subscriber);
+    } else {
+      List<Subscriber> subscriberList = new ArrayList<>();
+      subscriberList.add(subscriber);
+      subscribers.put(topic, subscriberList);
+    }
+
   }
 
   @Override
@@ -67,7 +78,7 @@ public class LanceBroker implements Broker {
   }
 
   @Override
-  public Map<Topic, Subscriber> getSubscribers() {
+  public Map<Topic, List<Subscriber>> getSubscribers() {
     return subscribers;
   }
 }

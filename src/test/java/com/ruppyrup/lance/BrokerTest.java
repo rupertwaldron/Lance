@@ -11,6 +11,7 @@ import com.ruppyrup.lance.subscribers.Subscriber;
 import com.ruppyrup.lance.transceivers.Transceiver;
 import java.util.ArrayList;
 import java.util.List;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -158,12 +159,17 @@ class BrokerTest {
       topic2 = new Topic("Test2");
     }
 
+    @AfterEach
+    private void tearDown() {
+      lanceBroker.getSubscribers().clear();
+    }
+
     @Test
     void testRegisterSubscriber() {
       Subscriber subscriber = new MockSubscriber();
       lanceBroker.register(topic1, subscriber);
       Assertions.assertTrue(lanceBroker.getSubscribers().containsKey(topic1));
-      Assertions.assertTrue(lanceBroker.getSubscribers().containsValue(subscriber));
+      Assertions.assertEquals(subscriber, lanceBroker.getSubscribers().get(topic1).get(0));
     }
 
     @Test
@@ -172,8 +178,19 @@ class BrokerTest {
       Subscriber subscriber2 = new MockSubscriber();
       lanceBroker.register(topic1, subscriber1);
       lanceBroker.register(topic2, subscriber2);
-      Assertions.assertEquals(subscriber1, lanceBroker.getSubscribers().get(topic1));
-      Assertions.assertEquals(subscriber2, lanceBroker.getSubscribers().get(topic2));
+      Assertions.assertEquals(subscriber1, lanceBroker.getSubscribers().get(topic1).get(0));
+      Assertions.assertEquals(subscriber2, lanceBroker.getSubscribers().get(topic2).get(0));
+    }
+
+    @Test
+    void testRegisterMultipleSubscribersToSameTopic() {
+      Subscriber subscriber1 = new MockSubscriber();
+      Subscriber subscriber2 = new MockSubscriber();
+      lanceBroker.register(topic1, subscriber1);
+      lanceBroker.register(topic1, subscriber2);
+
+      Subscriber[] subArray = {subscriber1, subscriber2};
+      Assertions.assertArrayEquals(subArray, lanceBroker.getSubscribers().get(topic1).toArray(Subscriber[]::new));
     }
   }
 }
@@ -190,7 +207,7 @@ class MockTransceiver implements Transceiver {
   }
 
   @Override
-  public void send(Message message) {
+  public void send(Message message, List<Subscriber> subscribers) {
     System.out.println("Sending message " + message);
     sendCount++;
   }

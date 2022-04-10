@@ -145,8 +145,6 @@ class BrokerTest {
   @DisplayName("Subscriber Tests")
   class SubscriberTests {
 
-    private final String expected1 = "expected1";
-    private final String expected2 = "expected2";
     private Topic topic1;
     private Topic topic2;
 
@@ -200,8 +198,6 @@ class MockTransceiver implements Transceiver {
   private final List<Message> messages = new ArrayList<>();
   private int receiveCount;
   private int sendCount;
-  private int messageCount;
-  private int messageIndex;
 
   MockTransceiver() {
   }
@@ -227,7 +223,6 @@ class MockTransceiver implements Transceiver {
 
   public void setMessage(Message message) {
     messages.add(message);
-    messageCount++;
   }
 }
 

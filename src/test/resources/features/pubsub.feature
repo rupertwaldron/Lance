@@ -4,7 +4,10 @@ Feature: Publish and Subscribe Feature
   another class can receive the data for that topic
 
   Scenario: Can publish and receive data
-    Given a udp message is created with data "test message" and topic "topic 1"
+    Given Lance Broker is receiving udp data
+    Given a udp message is created with data "test message" and topic "topic1"
     When a publisher sends the message to Lance Broker
-    Then Lance Broker will store the message under the correct topic
+    When a publisher sends the message to Lance Broker
+    When a publisher sends the message to Lance Broker
+#    Then Lance Broker will store the message under the correct topic
 

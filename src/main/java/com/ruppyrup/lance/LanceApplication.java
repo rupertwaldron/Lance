@@ -15,9 +15,11 @@ public class LanceApplication {
     System.out.println("Starting main....");
     Broker broker = LanceBroker.getInstance();
     DatagramSocket socket = new DatagramSocket(4445);
-    Transceiver transceiver = new UdpTransceiver(socket, InetAddress.getByName("localhost"), 4445);
+    Transceiver transceiver = new UdpTransceiver(socket, InetAddress.getLocalHost(), 4445);
     broker.setTransceiver(transceiver);
-    broker.receive();
+    while (true) {
+      broker.receive();
+    }
   }
 
 }

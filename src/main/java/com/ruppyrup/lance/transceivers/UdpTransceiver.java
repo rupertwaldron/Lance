@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.logging.Logger;
@@ -47,6 +48,7 @@ public class UdpTransceiver implements Transceiver {
     try {
       socket.receive(packet);
       byte[] receivedBytes = new byte[packet.getLength()];
+      LOGGER.info("Received packet -> " + Arrays.toString(receivedBytes));
       System.arraycopy(packet.getData(), 0, receivedBytes, 0, packet.getLength());
       receivedMessage = mapper.readValue(receivedBytes, LanceMessage.class);
     } catch (IOException e) {

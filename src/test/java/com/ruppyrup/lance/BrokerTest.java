@@ -11,6 +11,7 @@ import com.ruppyrup.lance.subscribers.Subscriber;
 import com.ruppyrup.lance.transceivers.Transceiver;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -209,8 +210,8 @@ class MockTransceiver implements Transceiver {
   }
 
   @Override
-  public Message receive() {
-    return messages.get(receiveCount++);
+  public Optional<Message> receive() {
+    return Optional.of(messages.get(receiveCount++));
   }
 
   public int getReceiveCount() {

@@ -14,8 +14,8 @@ public class LanceApplication {
   public static void main(String[] args) throws SocketException, UnknownHostException {
     System.out.println("Starting main....");
     Broker broker = LanceBroker.getInstance();
-    DatagramSocket socket = new DatagramSocket(8089);
-    Transceiver transceiver = new UdpTransceiver(socket, InetAddress.getLocalHost());
+    DatagramSocket socket = new DatagramSocket(4445);
+    Transceiver transceiver = new UdpTransceiver(socket, InetAddress.getByName("localhost"), 4445);
     broker.setTransceiver(transceiver);
     broker.receive();
   }

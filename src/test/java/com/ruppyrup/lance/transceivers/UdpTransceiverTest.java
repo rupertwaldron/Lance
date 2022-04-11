@@ -32,7 +32,7 @@ class UdpTransceiverTest {
   @BeforeEach
   void setUp() throws UnknownHostException, SocketException {
     socket = new MockDatagramSocket();
-    udpTransceiver = new UdpTransceiver(socket, InetAddress.getLocalHost());
+    udpTransceiver = new UdpTransceiver(socket, InetAddress.getLocalHost(), 6677);
     topic = new Topic("Topic-1");
     subscribers = List.of(new MockSubscriber(8899), new MockSubscriber(5678));
   }
@@ -56,7 +56,7 @@ class UdpTransceiverTest {
   void whenMessageSent_receiverGetsUpdatedData() throws JsonProcessingException {
     message = new LanceMessage(topic, "messageData");
     udpTransceiver.send(message, subscribers);
-    Message receivedMessage = udpTransceiver.receive();
+    Message receivedMessage = udpTransceiver.receive().orElse(new LanceMessage());
     assertEquals(message, receivedMessage);
   }
 }

@@ -10,18 +10,21 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.util.List;
+import java.util.Optional;
 import java.util.logging.Logger;
 
 public class UdpTransceiver implements Transceiver {
 
   private static final Logger LOGGER = Logger.getLogger(UdpTransceiver.class.getName());
   private final DatagramSocket socket;
-  private InetAddress address;
+  private final InetAddress address;
+  private final int port;
   private final ObjectMapper mapper = new ObjectMapper();
 
-  public UdpTransceiver(DatagramSocket socket, InetAddress address) {
+  public UdpTransceiver(DatagramSocket socket, InetAddress address, int port) {
     this.socket = socket;
     this.address = address;
+    this.port = port;
   }
 
   @Override
@@ -37,9 +40,9 @@ public class UdpTransceiver implements Transceiver {
   }
 
   @Override
-  public Message receive() {
+  public Optional<Message> receive() {
     byte[] buffer = new byte[58];
-    DatagramPacket packet = new DatagramPacket(buffer, buffer.length, address, socket.getPort());
+    DatagramPacket packet = new DatagramPacket(buffer, buffer.length, address, port);
     Message receivedMessage = null;
     try {
       socket.receive(packet);
@@ -49,7 +52,7 @@ public class UdpTransceiver implements Transceiver {
     } catch (IOException e) {
       LOGGER.warning("Error receiving datagram");
     }
-    return receivedMessage;
+    return Optional.ofNullable(receivedMessage);
   }
 
   private byte[] getMessageBytes(Message message) {

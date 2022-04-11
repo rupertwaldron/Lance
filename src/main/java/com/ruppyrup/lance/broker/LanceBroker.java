@@ -4,7 +4,6 @@ import com.ruppyrup.lance.models.Message;
 import com.ruppyrup.lance.models.Topic;
 import com.ruppyrup.lance.subscribers.Subscriber;
 import com.ruppyrup.lance.transceivers.Transceiver;
-import com.ruppyrup.lance.transceivers.UdpTransceiver;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -34,7 +33,11 @@ public class LanceBroker implements Broker {
 
   @Override
   public void receive() {
-    Message message = transceiver.receive();
+    Optional<Message> optionalMessage = transceiver.receive();
+    if (optionalMessage.isEmpty()) return;
+
+
+    Message message = optionalMessage.get();
     LOGGER.info("Message received :: " + message.getContents());
     Topic topic = message.getTopic();
 

@@ -84,7 +84,7 @@ public class LanceBroker implements Broker {
   }
 
   @Override
-  public Map<Topic, List<Subscriber>> getSubscribers() {
-    return subscribers;
+  public List<Subscriber> getSubscribersByTopic(Topic topic) {
+    return subscribers.get(topic);
   }
 }

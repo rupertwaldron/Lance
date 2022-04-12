@@ -160,15 +160,15 @@ class BrokerTest {
 
     @AfterEach
     private void tearDown() {
-      lanceBroker.getSubscribers().clear();
+      if (lanceBroker.getSubscribersByTopic(topic1) != null) lanceBroker.getSubscribersByTopic(topic1).clear();
+      if (lanceBroker.getSubscribersByTopic(topic2) != null) lanceBroker.getSubscribersByTopic(topic2).clear();
     }
 
     @Test
     void testRegisterSubscriber() {
       Subscriber subscriber = new MockSubscriber();
       lanceBroker.register(topic1, subscriber);
-      Assertions.assertTrue(lanceBroker.getSubscribers().containsKey(topic1));
-      Assertions.assertEquals(subscriber, lanceBroker.getSubscribers().get(topic1).get(0));
+      Assertions.assertEquals(subscriber, lanceBroker.getSubscribersByTopic(topic1).get(0));
     }
 
     @Test
@@ -177,8 +177,8 @@ class BrokerTest {
       Subscriber subscriber2 = new MockSubscriber();
       lanceBroker.register(topic1, subscriber1);
       lanceBroker.register(topic2, subscriber2);
-      Assertions.assertEquals(subscriber1, lanceBroker.getSubscribers().get(topic1).get(0));
-      Assertions.assertEquals(subscriber2, lanceBroker.getSubscribers().get(topic2).get(0));
+      Assertions.assertEquals(subscriber1, lanceBroker.getSubscribersByTopic(topic1).get(0));
+      Assertions.assertEquals(subscriber2, lanceBroker.getSubscribersByTopic(topic2).get(0));
     }
 
     @Test
@@ -189,7 +189,7 @@ class BrokerTest {
       lanceBroker.register(topic1, subscriber2);
 
       Subscriber[] subArray = {subscriber1, subscriber2};
-      Assertions.assertArrayEquals(subArray, lanceBroker.getSubscribers().get(topic1).toArray(Subscriber[]::new));
+      Assertions.assertArrayEquals(subArray, lanceBroker.getSubscribersByTopic(topic1).toArray(Subscriber[]::new));
     }
   }
 }

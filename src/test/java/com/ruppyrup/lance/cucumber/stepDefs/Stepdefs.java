@@ -33,6 +33,15 @@ public class Stepdefs {
     TestData.clear();
   }
 
+  @Given("Lance Broker is receiving udp data")
+  public void lanceBrokerIsReceivingUdpData() throws SocketException, UnknownHostException {
+    Transceiver transceiver = new UdpTransceiver(new DatagramSocket(4445), InetAddress.getLocalHost(), 4445);
+    LanceBroker.getInstance().setTransceiver(transceiver);
+    CompletableFuture<Void> receiverFuture = CompletableFuture.runAsync(
+        () -> LanceBroker.getInstance().receive());
+    TestData.setData("receiverFuture", receiverFuture);
+  }
+
   @Given("a udp message is created with data {string} and topic {string}")
   public void aUdpMessageIsCreatedWithDataAndTopic(String data, String topic) {
     Topic topic1 = new Topic(topic);
@@ -51,20 +60,19 @@ public class Stepdefs {
   public void lanceBrokerWillStoreTheMessageUnderTheCorrectTopic() {
     Topic topic = TestData.getData("topic1", Topic.class);
     Message expectedMessage = TestData.getData("message1", Message.class);
+    CompletableFuture<Void> receiverFuture = TestData.getData("receiverFuture", CompletableFuture.class);
+    receiverFuture.join();
     Optional<Message> message = LanceBroker.getInstance().getNextMessageForTopic(topic);
     Assertions.assertEquals(expectedMessage, message.orElse(new LanceMessage()));
   }
 
-  @Given("Lance Broker is receiving udp data")
-  public void lanceBrokerIsReceivingUdpData() throws SocketException, UnknownHostException {
-    Transceiver transceiver = new UdpTransceiver(new DatagramSocket(4445), InetAddress.getLocalHost(), 4445);
-    LanceBroker.getInstance().setTransceiver(transceiver);
-    CompletableFuture<Void> receiverFuture = CompletableFuture.runAsync(
-        () -> {
-          while(true){
-            LanceBroker.getInstance().receive();
-          }
-        });
-    TestData.setData("receiverFuture", receiverFuture);
+  @When("a subscriber registers for topic {string}")
+  public void aSubscriberRegistersForTopic(String topic) {
+
+  }
+
+  @Then("the subscriber will be found for that topic")
+  public void theSubscriberWillBeFoundForThatTopic() {
+
   }
 }

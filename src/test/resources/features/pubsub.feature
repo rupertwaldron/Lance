@@ -7,7 +7,9 @@ Feature: Publish and Subscribe Feature
     Given Lance Broker is receiving udp data
     Given a udp message is created with data "test message" and topic "topic1"
     When a publisher sends the message to Lance Broker
-    When a publisher sends the message to Lance Broker
-    When a publisher sends the message to Lance Broker
-#    Then Lance Broker will store the message under the correct topic
+    Then Lance Broker will store the message under the correct topic
 
+  Scenario: Can add a subscriber
+    Given Lance Broker is receiving udp data
+    When a subscriber registers for topic "topic2"
+    Then the subscriber will be found for that topic

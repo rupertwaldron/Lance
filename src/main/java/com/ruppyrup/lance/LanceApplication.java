@@ -3,7 +3,7 @@ package com.ruppyrup.lance;
 import com.ruppyrup.lance.broker.Broker;
 import com.ruppyrup.lance.broker.LanceBroker;
 import com.ruppyrup.lance.transceivers.Transceiver;
-import com.ruppyrup.lance.transceivers.UdpTransceiver;
+import com.ruppyrup.lance.transceivers.MsgTransceiver;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
@@ -15,8 +15,8 @@ public class LanceApplication {
     System.out.println("Starting main....");
     Broker broker = LanceBroker.getInstance();
     DatagramSocket socket = new DatagramSocket(4445);
-    Transceiver transceiver = new UdpTransceiver(socket, InetAddress.getLocalHost(), 4445);
-    broker.setTransceiver(transceiver);
+    Transceiver transceiver = new MsgTransceiver(socket, InetAddress.getLocalHost(), 4445);
+    broker.setMsgTransceiver(transceiver);
     while (true) {
       broker.receive();
     }

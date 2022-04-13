@@ -7,7 +7,6 @@ import java.util.Optional;
 
 public interface Transceiver {
 
-  void send(Message message, List<Subscriber> subscribers);
+  void send(Message message, List<Subscriber> subscribes);
   Optional<Message> receive();
-
 }

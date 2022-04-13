@@ -1,13 +1,12 @@
 package com.ruppyrup.lance.cucumber.stepDefs;
 
-import com.ruppyrup.lance.broker.Broker;
 import com.ruppyrup.lance.broker.LanceBroker;
 import com.ruppyrup.lance.cucumber.publisher.LancePublish;
-import com.ruppyrup.lance.models.LanceMessage;
+import com.ruppyrup.lance.models.DataMessage;
 import com.ruppyrup.lance.models.Message;
 import com.ruppyrup.lance.models.Topic;
 import com.ruppyrup.lance.transceivers.Transceiver;
-import com.ruppyrup.lance.transceivers.UdpTransceiver;
+import com.ruppyrup.lance.transceivers.MsgTransceiver;
 import io.cucumber.java.After;
 import io.cucumber.java.Before;
 import io.cucumber.java.en.Given;
@@ -35,8 +34,8 @@ public class Stepdefs {
 
   @Given("Lance Broker is receiving udp data")
   public void lanceBrokerIsReceivingUdpData() throws SocketException, UnknownHostException {
-    Transceiver transceiver = new UdpTransceiver(new DatagramSocket(4445), InetAddress.getLocalHost(), 4445);
-    LanceBroker.getInstance().setTransceiver(transceiver);
+    Transceiver transceiver = new MsgTransceiver(new DatagramSocket(4445), InetAddress.getLocalHost(), 4445);
+    LanceBroker.getInstance().setMsgTransceiver(transceiver);
     CompletableFuture<Void> receiverFuture = CompletableFuture.runAsync(
         () -> LanceBroker.getInstance().receive());
     TestData.setData("receiverFuture", receiverFuture);
@@ -45,7 +44,7 @@ public class Stepdefs {
   @Given("a udp message is created with data {string} and topic {string}")
   public void aUdpMessageIsCreatedWithDataAndTopic(String data, String topic) {
     Topic topic1 = new Topic(topic);
-    Message message1 = new LanceMessage(topic1, data);
+    Message message1 = new DataMessage(topic1, data);
     TestData.setData("message1", message1);
     TestData.setData("topic1", topic1);
   }
@@ -63,7 +62,7 @@ public class Stepdefs {
     CompletableFuture<Void> receiverFuture = TestData.getData("receiverFuture", CompletableFuture.class);
     receiverFuture.join();
     Optional<Message> message = LanceBroker.getInstance().getNextMessageForTopic(topic);
-    Assertions.assertEquals(expectedMessage, message.orElse(new LanceMessage()));
+    Assertions.assertEquals(expectedMessage, message.orElse(new DataMessage()));
   }
 
   @When("a subscriber registers for topic {string}")

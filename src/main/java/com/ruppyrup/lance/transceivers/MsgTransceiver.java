@@ -2,7 +2,7 @@ package com.ruppyrup.lance.transceivers;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.ruppyrup.lance.models.LanceMessage;
+import com.ruppyrup.lance.models.DataMessage;
 import com.ruppyrup.lance.models.Message;
 import com.ruppyrup.lance.subscribers.Subscriber;
 import java.io.IOException;
@@ -14,24 +14,24 @@ import java.util.List;
 import java.util.Optional;
 import java.util.logging.Logger;
 
-public class UdpTransceiver implements Transceiver {
+public class MsgTransceiver implements Transceiver {
 
-  private static final Logger LOGGER = Logger.getLogger(UdpTransceiver.class.getName());
+  private static final Logger LOGGER = Logger.getLogger(MsgTransceiver.class.getName());
   private final DatagramSocket socket;
   private final InetAddress address;
   private final int port;
   private final ObjectMapper mapper = new ObjectMapper();
 
-  public UdpTransceiver(DatagramSocket socket, InetAddress address, int port) {
+  public MsgTransceiver(DatagramSocket socket, InetAddress address, int port) {
     this.socket = socket;
     this.address = address;
     this.port = port;
   }
 
   @Override
-  public void send(Message message, List<Subscriber> subscribers) {
+  public void send(Message message, List<Subscriber> subscribes) {
     byte[] messageBytes = getMessageBytes(message);
-    subscribers.forEach(subscriber -> {
+    subscribes.forEach(subscriber -> {
       try {
         socket.send(new DatagramPacket(messageBytes, messageBytes.length, address, subscriber.getPort()));
       } catch (IOException e) {
@@ -50,7 +50,7 @@ public class UdpTransceiver implements Transceiver {
       byte[] receivedBytes = new byte[packet.getLength()];
       LOGGER.info("Received packet -> %s" + Arrays.toString(packet.getData()));
       System.arraycopy(packet.getData(), 0, receivedBytes, 0, packet.getLength());
-      receivedMessage = mapper.readValue(receivedBytes, LanceMessage.class);
+      receivedMessage = mapper.readValue(receivedBytes, DataMessage.class);
     } catch (IOException e) {
       LOGGER.warning("Error receiving datagram");
     } finally {

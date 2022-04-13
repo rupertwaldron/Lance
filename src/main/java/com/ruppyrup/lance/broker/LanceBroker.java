@@ -1,7 +1,10 @@
 package com.ruppyrup.lance.broker;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ruppyrup.lance.models.Message;
 import com.ruppyrup.lance.models.Topic;
+import com.ruppyrup.lance.subscribers.LanceSubscriber;
 import com.ruppyrup.lance.subscribers.Subscriber;
 import com.ruppyrup.lance.transceivers.Transceiver;
 import java.util.ArrayList;
@@ -16,9 +19,13 @@ import java.util.logging.Logger;
 public class LanceBroker implements Broker {
 
   private static final Logger LOGGER = Logger.getLogger(LanceBroker.class.getName());
+  private static final ObjectMapper mapper = new ObjectMapper();
   private static LanceBroker lanceBrokerInstance;
-  private Transceiver transceiver;
+  private Transceiver msgTransceiver;
+  private Transceiver subTransceiver;
+
   private final Map<Topic, Queue<Message>> receivedMessages = new HashMap<>();
+
   private final Map<Topic, List<Subscriber>> subscribers = new HashMap<>();
 
   private LanceBroker() {
@@ -33,9 +40,8 @@ public class LanceBroker implements Broker {
 
   @Override
   public void receive() {
-    Optional<Message> optionalMessage = transceiver.receive();
+    Optional<Message> optionalMessage = msgTransceiver.receive();
     if (optionalMessage.isEmpty()) return;
-
 
     Message message = optionalMessage.get();
     LOGGER.info("Message received :: " + message.getContents());
@@ -56,26 +62,46 @@ public class LanceBroker implements Broker {
       while(!entry.getValue().isEmpty()) {
         Message message = entry.getValue().poll();
         List<Subscriber> subList = subscribers.get(message.getTopic());
-        transceiver.send(message, subList);
+        msgTransceiver.send(message, subList);
       }
     }
   }
 
   @Override
-  public void register(Topic topic, Subscriber subscriber) {
+  public void register() {
+    Optional<Message> optionalMessage = subTransceiver.receive();
+    if (optionalMessage.isEmpty()) return;
+
+    Message message = optionalMessage.get();
+    String stringSubscriber = message.getContents();
+    LOGGER.info("Message received :: " + stringSubscriber);
+    Topic topic = message.getTopic();
+
+    Subscriber subscriber;
+    try {
+      subscriber = mapper.readValue(stringSubscriber, LanceSubscriber.class);
+    } catch (JsonProcessingException e) {
+      LOGGER.warning("Can't convert string to subscriber" + e.getMessage());
+      return;
+    }
+
     if (subscribers.containsKey(topic)) {
       subscribers.get(topic).add(subscriber);
     } else {
-      List<Subscriber> subscriberList = new ArrayList<>();
-      subscriberList.add(subscriber);
-      subscribers.put(topic, subscriberList);
+      List<Subscriber> subscribeList = new ArrayList<>();
+      subscribeList.add(subscriber);
+      subscribers.put(topic, subscribeList);
     }
-
   }
 
   @Override
-  public void setTransceiver(Transceiver transceiver) {
-    this.transceiver = transceiver;
+  public void setSubTransceiver(Transceiver subTransceiver) {
+    this.subTransceiver = subTransceiver;
+  }
+
+  @Override
+  public void setMsgTransceiver(Transceiver msgTransceiver) {
+    this.msgTransceiver = msgTransceiver;
   }
 
   @Override

@@ -4,11 +4,11 @@ import java.util.Objects;
 import lombok.NoArgsConstructor;
 
 @NoArgsConstructor
-public class LanceMessage implements Message {
+public class DataMessage implements Message {
   private String contents;
   private Topic topic;
 
-  public LanceMessage(Topic topic, String contents) {
+  public DataMessage(Topic topic, String contents) {
     this.contents = contents;
     this.topic = topic;
   }
@@ -45,7 +45,7 @@ public class LanceMessage implements Message {
       return false;
     }
 
-    LanceMessage that = (LanceMessage) o;
+    DataMessage that = (DataMessage) o;
 
     if (!Objects.equals(contents, that.contents)) {
       return false;

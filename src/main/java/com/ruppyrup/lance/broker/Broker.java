@@ -12,8 +12,11 @@ import java.util.Optional;
 public interface Broker {
   void receive();
   void send();
-  void register(Topic topic, Subscriber subscriber);
-  void setTransceiver(Transceiver transceiver);
+  void register();
+
+  void setSubTransceiver(Transceiver subTransceiver);
+
+  void setMsgTransceiver(Transceiver msgTransceiver);
   Optional<Message> getNextMessageForTopic(Topic topic);
   List<Subscriber> getSubscribersByTopic(Topic topic);
 }

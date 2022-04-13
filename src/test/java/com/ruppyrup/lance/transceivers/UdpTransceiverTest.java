@@ -5,7 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.ruppyrup.lance.models.LanceMessage;
+import com.ruppyrup.lance.models.DataMessage;
 import com.ruppyrup.lance.models.Message;
 import com.ruppyrup.lance.models.Topic;
 import com.ruppyrup.lance.subscribers.Subscriber;
@@ -21,42 +21,42 @@ import org.junit.jupiter.api.Test;
 
 class UdpTransceiverTest {
 
-  private UdpTransceiver udpTransceiver;
+  private MsgTransceiver msgTransceiver;
   private Message message;
   private MockDatagramSocket socket;
   private Topic topic;
   private byte[] buffer = new byte[1024];
-  private List<Subscriber> subscribers;
+  private List<Subscriber> subscribes;
   private final ObjectMapper objectMapper = new ObjectMapper();
 
   @BeforeEach
   void setUp() throws UnknownHostException, SocketException {
     socket = new MockDatagramSocket();
-    udpTransceiver = new UdpTransceiver(socket, InetAddress.getLocalHost(), 6677);
+    msgTransceiver = new MsgTransceiver(socket, InetAddress.getLocalHost(), 6677);
     topic = new Topic("Topic-1");
-    subscribers = List.of(new MockSubscriber(8899), new MockSubscriber(5678));
+    subscribes = List.of(new MockSubscribe(8899), new MockSubscribe(5678));
   }
 
   @Test
   void whenSendCalled_sendsMessagesToSubscribers() {
-    message = new LanceMessage(topic, "messageData");
-    udpTransceiver.send(message, subscribers);
+    message = new DataMessage(topic, "messageData");
+    msgTransceiver.send(message, subscribes);
     assertEquals(2, socket.getSendCount());
   }
 
   @Test
   void whenSendCalled_sendsCorrectDatagramMessage() throws JsonProcessingException {
-    message = new LanceMessage(topic, "messageData");
+    message = new DataMessage(topic, "messageData");
     byte[] expectedData = objectMapper.writeValueAsBytes(message);
-    udpTransceiver.send(message, subscribers);
+    msgTransceiver.send(message, subscribes);
     assertArrayEquals(expectedData, socket.getSendPacket().getData());
   }
 
   @Test
   void whenMessageSent_receiverGetsUpdatedData() throws JsonProcessingException {
-    message = new LanceMessage(topic, "messageData");
-    udpTransceiver.send(message, subscribers);
-    Message receivedMessage = udpTransceiver.receive().orElse(new LanceMessage());
+    message = new DataMessage(topic, "messageData");
+    msgTransceiver.send(message, subscribes);
+    Message receivedMessage = msgTransceiver.receive().orElse(new DataMessage());
     assertEquals(message, receivedMessage);
   }
 }
@@ -101,15 +101,25 @@ class MockDatagramSocket extends DatagramSocket {
   }
 }
 
-class MockSubscriber implements Subscriber {
+class MockSubscribe implements Subscriber {
   private final int port;
 
-  MockSubscriber(int port) {
+  MockSubscribe(int port) {
     this.port = port;
+  }
+
+  @Override
+  public String getSubscriberName() {
+    return null;
   }
 
   @Override
   public int getPort() {
     return port;
+  }
+
+  @Override
+  public String toJsonString() {
+    return null;
   }
 }

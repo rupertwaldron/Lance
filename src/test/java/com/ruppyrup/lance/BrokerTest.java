@@ -2,15 +2,20 @@ package com.ruppyrup.lance;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ruppyrup.lance.broker.Broker;
 import com.ruppyrup.lance.broker.LanceBroker;
-import com.ruppyrup.lance.models.LanceMessage;
+import com.ruppyrup.lance.models.DataMessage;
 import com.ruppyrup.lance.models.Message;
 import com.ruppyrup.lance.models.Topic;
+import com.ruppyrup.lance.subscribers.LanceSubscriber;
 import com.ruppyrup.lance.subscribers.Subscriber;
 import com.ruppyrup.lance.transceivers.Transceiver;
+import io.cucumber.messages.internal.com.google.common.eventbus.Subscribe;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
@@ -39,7 +44,7 @@ class BrokerTest {
     private void setup() {
       udpTransceiver = new MockTransceiver();
       lanceBroker = LanceBroker.getInstance();
-      lanceBroker.setTransceiver(udpTransceiver);
+      lanceBroker.setMsgTransceiver(udpTransceiver);
     }
 
     @Test
@@ -67,7 +72,7 @@ class BrokerTest {
     private void setup() {
       udpTransceiver = new MockTransceiver();
       lanceBroker = LanceBroker.getInstance();
-      lanceBroker.setTransceiver(udpTransceiver);
+      lanceBroker.setMsgTransceiver(udpTransceiver);
       topic1 = new Topic("Test1");
       topic2 = new Topic("Test2");
     }
@@ -98,7 +103,7 @@ class BrokerTest {
   }
 
   private void setTransceiverMessageString(Topic topic, String s) {
-    LanceMessage message = new LanceMessage(topic, s);
+    DataMessage message = new DataMessage(topic, s);
     udpTransceiver.setMessage(message);
   }
 
@@ -115,7 +120,7 @@ class BrokerTest {
     private void setup() {
       udpTransceiver = new MockTransceiver();
       lanceBroker = LanceBroker.getInstance();
-      lanceBroker.setTransceiver(udpTransceiver);
+      lanceBroker.setMsgTransceiver(udpTransceiver);
       topic1 = new Topic("Test1");
       topic2 = new Topic("Test2");
     }
@@ -144,16 +149,19 @@ class BrokerTest {
 
   @Nested
   @DisplayName("Subscriber Tests")
-  class SubscriberTests {
+  class SubscribeTests {
 
     private Topic topic1;
     private Topic topic2;
+    MockSubTransceiver subTransceiver;
 
     @BeforeEach
     private void setup() {
       udpTransceiver = new MockTransceiver();
+      subTransceiver = new MockSubTransceiver();
       lanceBroker = LanceBroker.getInstance();
-      lanceBroker.setTransceiver(udpTransceiver);
+      lanceBroker.setMsgTransceiver(udpTransceiver);
+      lanceBroker.setSubTransceiver(subTransceiver);
       topic1 = new Topic("Test1");
       topic2 = new Topic("Test2");
     }
@@ -166,30 +174,41 @@ class BrokerTest {
 
     @Test
     void testRegisterSubscriber() {
-      Subscriber subscriber = new MockSubscriber();
-      lanceBroker.register(topic1, subscriber);
-      Assertions.assertEquals(subscriber, lanceBroker.getSubscribersByTopic(topic1).get(0));
+      Subscriber subscribe = new LanceSubscriber("sub1", 1001);
+      Message subMessage = new DataMessage(topic1, subscribe.toJsonString());
+      subTransceiver.setMessage(subMessage);
+      lanceBroker.register();
+      Assertions.assertEquals(subscribe.toJsonString(), lanceBroker.getSubscribersByTopic(topic1).get(0).toJsonString());
     }
 
     @Test
     void testRegisterMultipleSubscribers() {
-      Subscriber subscriber1 = new MockSubscriber();
-      Subscriber subscriber2 = new MockSubscriber();
-      lanceBroker.register(topic1, subscriber1);
-      lanceBroker.register(topic2, subscriber2);
-      Assertions.assertEquals(subscriber1, lanceBroker.getSubscribersByTopic(topic1).get(0));
-      Assertions.assertEquals(subscriber2, lanceBroker.getSubscribersByTopic(topic2).get(0));
+      Subscriber subscribe1 = new LanceSubscriber("sub1", 1001);
+      Subscriber subscribe2 = new LanceSubscriber("sub2", 1002);
+      Message subMessage1 = new DataMessage(topic1, subscribe1.toJsonString());
+      Message subMessage2 = new DataMessage(topic2, subscribe2.toJsonString());
+      subTransceiver.setMessage(subMessage1);
+      subTransceiver.setMessage(subMessage2);
+      lanceBroker.register();
+      lanceBroker.register();
+      Assertions.assertEquals(subscribe1, lanceBroker.getSubscribersByTopic(topic1).get(0));
+      Assertions.assertEquals(subscribe2, lanceBroker.getSubscribersByTopic(topic2).get(0));
     }
 
     @Test
     void testRegisterMultipleSubscribersToSameTopic() {
-      Subscriber subscriber1 = new MockSubscriber();
-      Subscriber subscriber2 = new MockSubscriber();
-      lanceBroker.register(topic1, subscriber1);
-      lanceBroker.register(topic1, subscriber2);
+      Subscriber subscribe1 = new LanceSubscriber("sub1", 1001);
+      Subscriber subscribe2 = new LanceSubscriber("sub2", 1002);
+      Message subMessage1 = new DataMessage(topic1, subscribe1.toJsonString());
+      Message subMessage2 = new DataMessage(topic1, subscribe2.toJsonString());
+      subTransceiver.setMessage(subMessage1);
+      subTransceiver.setMessage(subMessage2);
+      lanceBroker.register();
+      lanceBroker.register();
 
-      Subscriber[] subArray = {subscriber1, subscriber2};
-      Assertions.assertArrayEquals(subArray, lanceBroker.getSubscribersByTopic(topic1).toArray(Subscriber[]::new));
+      Subscriber[] subArray = {subscribe1, subscribe2};
+      Assertions.assertArrayEquals(subArray, lanceBroker.getSubscribersByTopic(topic1).toArray(
+          Subscriber[]::new));
     }
   }
 }
@@ -204,7 +223,7 @@ class MockTransceiver implements Transceiver {
   }
 
   @Override
-  public void send(Message message, List<Subscriber> subscribers) {
+  public void send(Message message, List<Subscriber> subscribes) {
     System.out.println("Sending message " + message);
     sendCount++;
   }
@@ -227,12 +246,35 @@ class MockTransceiver implements Transceiver {
   }
 }
 
-class MockSubscriber implements Subscriber {
+class MockSubTransceiver implements Transceiver {
 
-  int port = 8888;
+  private final List<Message> messages = new ArrayList<>();
+  private int receiveCount;
+  private int sendCount;
+
+  MockSubTransceiver() {
+  }
 
   @Override
-  public int getPort() {
-    return 0;
+  public void send(Message message, List<Subscriber> subscribes) {
+    System.out.println("Sending message " + message);
+    sendCount++;
+  }
+
+  @Override
+  public Optional<Message> receive() {
+    return Optional.of(messages.get(receiveCount++));
+  }
+
+  public int getReceiveCount() {
+    return receiveCount;
+  }
+
+  public int getSendCount() {
+    return sendCount;
+  }
+
+  public void setMessage(Message message) {
+    messages.add(message);
   }
 }

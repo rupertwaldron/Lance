@@ -42,7 +42,7 @@ public class MsgTransceiver implements Transceiver {
 
   @Override
   public Optional<Message> receive() {
-    byte[] buffer = new byte[58];
+    byte[] buffer = new byte[1024];
     DatagramPacket packet = new DatagramPacket(buffer, buffer.length, address, port);
     Message receivedMessage = null;
     try {
@@ -52,7 +52,7 @@ public class MsgTransceiver implements Transceiver {
       System.arraycopy(packet.getData(), 0, receivedBytes, 0, packet.getLength());
       receivedMessage = mapper.readValue(receivedBytes, DataMessage.class);
     } catch (IOException e) {
-      LOGGER.warning("Error receiving datagram");
+      LOGGER.warning("Error receiving datagram :: " + e.getMessage());
     } finally {
       socket.close();
     }

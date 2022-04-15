@@ -78,30 +78,26 @@ public class Stepdefs {
     Assertions.assertEquals(expectedMessage, message.orElse(new DataMessage()));
   }
 
-  @Given("a subscribe message is created with topic {string}, subscriber name {string} on port {int}")
-  public void aSubscriberRegistersForTopic(String subscriberName, String topic, int port) {
-    Topic topic2 = new Topic(topic);
-    Subscriber subscriber1 = new LanceSubscriber(subscriberName, port);
-    Message message2 = new DataMessage(topic2, subscriber1.toJsonString());
-    TestData.setData("subscriber1", subscriber1);
-    TestData.setData("message2", message2);
-    TestData.setData("topic2", topic2);
-  }
-
-  @When("a subscriber registers for the topic")
-  public void aSubscriberRegistersForTopic() {
-    Message message2 = TestData.getData("message2", DataMessage.class);
-    LanceSubscribe.subscribe(message2);
+  @When("a subscriber registers for the topic on port {int} for topic {string} with subscriber name {string}")
+  public void aSubscriberRegistersForTopic(int port, String topic, String subscriberName) {
+    Topic topic1 = new Topic(topic);
+    TestData.setData("topic1", topic1);
+    TestData.setData("subPort", port);
+    TestData.setData("subName", subscriberName);
+    LanceSubscribe lanceSubscribe = new LanceSubscribe(port);
+    lanceSubscribe.subscribe(subscriberName, topic1);
   }
 
   @Then("the subscriber will be found for that topic")
   public void theSubscriberWillBeFoundForThatTopic() {
-    Subscriber subscriber = TestData.getData("subscriber1", LanceSubscriber.class);
-    Topic topic = TestData.getData("topic2", Topic.class);
+    Topic topic = TestData.getData("topic1", Topic.class);
+    String subscriberName = TestData.getData("subName", String.class);
+    int subscriberPort = TestData.getData("subPort", Integer.class);
     CompletableFuture<Void> subscriberFuture = TestData.getData("subscriberFuture",
         CompletableFuture.class);
     subscriberFuture.join();
     List<Subscriber> subscribersByTopic = LanceBroker.getInstance().getSubscribersByTopic(topic);
-    Assertions.assertEquals(subscriber, subscribersByTopic.get(0));
+    Assertions.assertEquals(subscriberPort, subscribersByTopic.get(0).getPort());
+    Assertions.assertEquals(subscriberName, subscribersByTopic.get(0).getSubscriberName());
   }
 }

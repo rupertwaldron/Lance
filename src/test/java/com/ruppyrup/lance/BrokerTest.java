@@ -2,8 +2,6 @@ package com.ruppyrup.lance;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ruppyrup.lance.broker.Broker;
 import com.ruppyrup.lance.broker.LanceBroker;
 import com.ruppyrup.lance.models.DataMessage;
@@ -12,10 +10,8 @@ import com.ruppyrup.lance.models.Topic;
 import com.ruppyrup.lance.subscribers.LanceSubscriber;
 import com.ruppyrup.lance.subscribers.Subscriber;
 import com.ruppyrup.lance.transceivers.Transceiver;
-import io.cucumber.messages.internal.com.google.common.eventbus.Subscribe;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;

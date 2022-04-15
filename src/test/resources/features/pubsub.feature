@@ -11,6 +11,12 @@ Feature: Publish and Subscribe Feature
 
   Scenario: Can add a subscriber
     Given Lance Broker is receiving subscriptions
-    And a subscribe message is created with topic "topic2", subscriber name "Sub1" on port 3333
-    When a subscriber registers for the topic
+    And a subscriber registers for the topic on port 3333 for topic "topic1" with subscriber name "subName1"
     Then the subscriber will be found for that topic
+
+  Scenario: Subscriber receives message
+    Given Lance Broker is receiving message data
+    And Lance Broker is receiving subscriptions
+    And a subscriber registers for the topic on port 3333 for topic "topic1" with subscriber name "subName1"
+    And a udp message is created with data "test message" and topic "topic1"
+    When a publisher sends the message to Lance Broker

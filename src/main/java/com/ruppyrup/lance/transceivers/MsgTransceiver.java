@@ -9,7 +9,6 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.logging.Logger;
@@ -30,10 +29,12 @@ public class MsgTransceiver implements Transceiver {
 
   @Override
   public void send(Message message, List<Subscriber> subscribes) {
+    if (subscribes == null) return;
     byte[] messageBytes = getMessageBytes(message);
     subscribes.forEach(subscriber -> {
       try {
         socket.send(new DatagramPacket(messageBytes, messageBytes.length, address, subscriber.getPort()));
+        LOGGER.info("Sending message to subscriber: " + subscriber + " with contents " + message);
       } catch (IOException e) {
         LOGGER.warning("Error sending packing for message :: " + message);
       }
@@ -48,15 +49,18 @@ public class MsgTransceiver implements Transceiver {
     try {
       socket.receive(packet);
       byte[] receivedBytes = new byte[packet.getLength()];
-      LOGGER.info("Received packet -> %s" + Arrays.toString(packet.getData()));
       System.arraycopy(packet.getData(), 0, receivedBytes, 0, packet.getLength());
       receivedMessage = mapper.readValue(receivedBytes, DataMessage.class);
+      LOGGER.info("Msg Transceiver received -> " + receivedMessage);
     } catch (IOException e) {
       LOGGER.warning("Error receiving datagram :: " + e.getMessage());
-    } finally {
-      socket.close();
     }
     return Optional.ofNullable(receivedMessage);
+  }
+
+  @Override
+  public void close() {
+    socket.close();
   }
 
   private byte[] getMessageBytes(Message message) {

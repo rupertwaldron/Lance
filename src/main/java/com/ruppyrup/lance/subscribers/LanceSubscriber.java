@@ -59,4 +59,12 @@ public class LanceSubscriber implements Subscriber {
     result = 31 * result + port;
     return result;
   }
+
+  @Override
+  public String toString() {
+    return "LanceSubscriber{" +
+        "subscriberName='" + subscriberName + '\'' +
+        ", port=" + port +
+        '}';
+  }
 }

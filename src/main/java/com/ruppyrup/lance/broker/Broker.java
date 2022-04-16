@@ -14,6 +14,8 @@ public interface Broker {
   void send();
   void register();
 
+  void closeSockets();
+
   void setSubTransceiver(Transceiver subTransceiver);
 
   void setMsgTransceiver(Transceiver msgTransceiver);

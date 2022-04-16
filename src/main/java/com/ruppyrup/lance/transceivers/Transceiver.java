@@ -9,4 +9,6 @@ public interface Transceiver {
 
   void send(Message message, List<Subscriber> subscribes);
   Optional<Message> receive();
+
+  void close();
 }

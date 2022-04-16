@@ -47,12 +47,12 @@ public class LanceBroker implements Broker {
     LOGGER.info("Message received :: " + message.getContents());
     Topic topic = message.getTopic();
 
-    if (!receivedMessages.containsKey(topic)) {
-      Queue<Message> topicMessages = receivedMessages.computeIfAbsent(topic,
-          k -> new LinkedList<>());
-      topicMessages.add(message);
-    } else {
+    if (receivedMessages.containsKey(topic)) {
       receivedMessages.get(topic).add(message);
+    } else {
+      Queue<Message> topicMessages = new LinkedList<>();
+      topicMessages.add(message);
+      receivedMessages.put(topic, topicMessages);
     }
   }
 
@@ -92,6 +92,12 @@ public class LanceBroker implements Broker {
       subscribeList.add(subscriber);
       subscribers.put(topic, subscribeList);
     }
+  }
+
+  @Override
+  public void closeSockets() {
+    if (subTransceiver != null) subTransceiver.close();
+    if (msgTransceiver != null) msgTransceiver.close();
   }
 
   @Override

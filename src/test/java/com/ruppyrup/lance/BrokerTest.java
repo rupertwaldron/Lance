@@ -1,6 +1,7 @@
 package com.ruppyrup.lance;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.ruppyrup.lance.broker.Broker;
 import com.ruppyrup.lance.broker.LanceBroker;
@@ -95,6 +96,12 @@ class BrokerTest {
           lanceBroker.getNextMessageForTopic(topic1).orElseThrow().getContents());
       assertEquals(expected2,
           lanceBroker.getNextMessageForTopic(topic1).orElseThrow().getContents());
+    }
+
+    @Test
+    void closeSocketsIsCalled() {
+      lanceBroker.closeSockets();
+      assertTrue(udpTransceiver.isClosed());
     }
   }
 
@@ -214,6 +221,7 @@ class MockTransceiver implements Transceiver {
   private final List<Message> messages = new ArrayList<>();
   private int receiveCount;
   private int sendCount;
+  private boolean isClosed;
 
   MockTransceiver() {
   }
@@ -227,6 +235,15 @@ class MockTransceiver implements Transceiver {
   @Override
   public Optional<Message> receive() {
     return Optional.of(messages.get(receiveCount++));
+  }
+
+  @Override
+  public void close() {
+    isClosed = true;
+  }
+
+  public boolean isClosed() {
+    return isClosed;
   }
 
   public int getReceiveCount() {
@@ -260,6 +277,11 @@ class MockSubTransceiver implements Transceiver {
   @Override
   public Optional<Message> receive() {
     return Optional.of(messages.get(receiveCount++));
+  }
+
+  @Override
+  public void close() {
+
   }
 
   public int getReceiveCount() {

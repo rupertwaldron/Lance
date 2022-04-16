@@ -19,6 +19,7 @@ public final class LancePublish {
       InetAddress address = InetAddress.getByName("localhost");
       byte[] dataToSend = getMessageBytes(message);
       DatagramPacket packet = new DatagramPacket(dataToSend, dataToSend.length, address, port);
+      LOGGER.info("Publisher sending message to Broker :: " + message);
       socket.send(packet);
     } catch (Exception ex) {
       LOGGER.warning("Publish has failed ... \n" + ex.getMessage());

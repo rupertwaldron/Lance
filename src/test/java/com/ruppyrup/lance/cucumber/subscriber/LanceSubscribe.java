@@ -43,20 +43,19 @@ public final class LanceSubscribe {
   public Optional<Message> receive() {
     byte[] buffer = new byte[1024];
     Message receivedMessage = null;
-    try (DatagramSocket socket = new DatagramSocket()) {
+    try (DatagramSocket socket = new DatagramSocket(receivePort)) {
       InetAddress address = InetAddress.getByName(LOCALHOST);
       DatagramPacket packet = new DatagramPacket(buffer, buffer.length, address, receivePort);
       socket.receive(packet);
       byte[] receivedBytes = new byte[packet.getLength()];
-      LOGGER.info("Received packet -> %s" + Arrays.toString(packet.getData()));
       System.arraycopy(packet.getData(), 0, receivedBytes, 0, packet.getLength());
       receivedMessage = mapper.readValue(receivedBytes, DataMessage.class);
+      LOGGER.info("Lance Subscribe received -> %s" + receivedMessage);
     } catch (IOException e) {
       LOGGER.warning("Error receiving datagram :: " + e.getMessage());
     }
     return Optional.ofNullable(receivedMessage);
   }
-
 
   private static byte[] getMessageBytes(Message message) {
     try {

@@ -74,7 +74,7 @@ public class LanceBroker implements Broker {
 
     Message message = optionalMessage.get();
     String stringSubscriber = message.getContents();
-    LOGGER.info("Message received :: " + stringSubscriber);
+    LOGGER.info("Registered :: " + stringSubscriber);
     Topic topic = message.getTopic();
 
     Subscriber subscriber;

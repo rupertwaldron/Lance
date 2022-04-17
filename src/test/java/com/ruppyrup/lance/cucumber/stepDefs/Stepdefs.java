@@ -1,12 +1,11 @@
 package com.ruppyrup.lance.cucumber.stepDefs;
 
 import com.ruppyrup.lance.broker.LanceBroker;
-import com.ruppyrup.lance.cucumber.publisher.LancePublish;
-import com.ruppyrup.lance.cucumber.subscriber.LanceSubscribe;
+import com.ruppyrup.lance.publisher.LancePublish;
+import com.ruppyrup.lance.subscriber.LanceSubscribe;
 import com.ruppyrup.lance.models.DataMessage;
 import com.ruppyrup.lance.models.Message;
 import com.ruppyrup.lance.models.Topic;
-import com.ruppyrup.lance.subscribers.LanceSubscriber;
 import com.ruppyrup.lance.subscribers.Subscriber;
 import com.ruppyrup.lance.transceivers.Transceiver;
 import com.ruppyrup.lance.transceivers.MsgTransceiver;
@@ -26,7 +25,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
 
 public class Stepdefs {
@@ -75,7 +73,7 @@ public class Stepdefs {
   @When("a publisher sends the message to Lance Broker")
   public void aPublisherSendsTheMessageToLanceBroker() {
     Message message = TestData.getData("message1", Message.class);
-    LancePublish.publish(message);
+    new LancePublish().publish(message);
   }
 
   @Then("Lance Broker will store the message under the correct topic")

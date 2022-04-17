@@ -1,8 +1,10 @@
-package com.ruppyrup.lance.cucumber.publisher;
+package com.ruppyrup.lance.publisher;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ruppyrup.lance.models.DataMessage;
 import com.ruppyrup.lance.models.Message;
+import com.ruppyrup.lance.models.Topic;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
@@ -14,7 +16,7 @@ public final class LancePublish {
   private static final ObjectMapper mapper = new ObjectMapper();
   private static final int port = 4445;
 
-  public static void publish(Message message) {
+  public void publish(Message message) {
     try (DatagramSocket socket = new DatagramSocket()) {
       InetAddress address = InetAddress.getByName("localhost");
       byte[] dataToSend = getMessageBytes(message);
@@ -33,6 +35,11 @@ public final class LancePublish {
       e.printStackTrace();
     }
     return new byte[0];
+  }
+
+  public static void main(String[] args) {
+    LancePublish publisher = new LancePublish();
+    publisher.publish(new DataMessage(new Topic("monkey-topic"), "Hello from publisher on monkey-topic"));
   }
 
 }

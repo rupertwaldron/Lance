@@ -1,4 +1,4 @@
-package com.ruppyrup.lance.cucumber.subscriber;
+package com.ruppyrup.lance.subscriber;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -11,7 +11,6 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
-import java.util.Arrays;
 import java.util.Optional;
 import java.util.logging.Logger;
 
@@ -64,6 +63,33 @@ public final class LanceSubscribe {
       e.printStackTrace();
     }
     return new byte[0];
+  }
+
+//  private void emit(FluxSink<byte[]> emitter) {
+//    int count = 0;
+//    byte[] buf = new byte[256];
+//
+//    while (true) {
+//      DatagramPacket packet
+//          = new DatagramPacket(buf, buf.length);
+//      try {
+//        socket.receive(packet);
+//      } catch (IOException e) {
+//        e.printStackTrace();
+//      }
+//
+//      String received
+//          = new String(packet.getData(), 0, packet.getLength());
+//      System.out.println("Emitting :: " + received);
+//      emitter.next(packet.getData());
+//    }
+
+  public static void main(String[] args) {
+    LanceSubscribe subscriber = new LanceSubscribe( 6161);
+    subscriber.subscribe("rubsub", new Topic("monkey-topic"));
+    while (true) {
+      subscriber.receive();
+    }
   }
 
 }

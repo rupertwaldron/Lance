@@ -8,7 +8,9 @@ import com.ruppyrup.lance.models.Topic;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
+import java.util.stream.IntStream;
 
 public final class LancePublish {
 
@@ -37,9 +39,11 @@ public final class LancePublish {
     return new byte[0];
   }
 
-  public static void main(String[] args) {
+  public static void main(String[] args) throws InterruptedException {
     LancePublish publisher = new LancePublish();
-    publisher.publish(new DataMessage(new Topic("monkey-topic"), "Hello from publisher on monkey-topic"));
+    IntStream.range(0, 9990)
+        .mapToObj(i -> "Hello from publisher on monkey-topic " + i)
+        .forEach(message -> publisher.publish(new DataMessage(new Topic("monkey-topic"), message)));
   }
 
 }

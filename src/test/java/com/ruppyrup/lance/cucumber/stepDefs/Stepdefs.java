@@ -117,7 +117,8 @@ public class Stepdefs {
   }
 
   @And("a subscriber is created with listening port {int}")
-  public void aSubscriberIsCreatedWithListeningPort(int port) {
+  public void aSubscriberIsCreatedWithListeningPort(int port)
+      throws SocketException, UnknownHostException {
     LanceSubscribe lanceSubscribe = new LanceSubscribe(port);
     TestData.setData("lanceSubscribe", lanceSubscribe);
     TestData.setData("subPort", port);
@@ -126,9 +127,9 @@ public class Stepdefs {
   @Then("the subscriber receives the message")
   public void theSubscriberReceivesTheMessage() {
     LanceSubscribe lanceSubscribe = TestData.getData("lanceSubscribe", LanceSubscribe.class);
-    Optional<Message> receivedMessage = lanceSubscribe.receive();
+    Message receivedMessage = lanceSubscribe.receive();
     DataMessage expectedMessage = TestData.getData("message1", DataMessage.class);
-    Assertions.assertEquals(expectedMessage, receivedMessage.orElse(null));
+    Assertions.assertEquals(expectedMessage, receivedMessage);
   }
 
   @And("Lance Broker is sending every {int} milliseconds intervals")

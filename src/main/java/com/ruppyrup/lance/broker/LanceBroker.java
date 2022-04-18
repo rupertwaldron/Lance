@@ -14,19 +14,24 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Queue;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
 public class LanceBroker implements Broker {
+
+  // todo need a de-register method
 
   private static final Logger LOGGER = Logger.getLogger(LanceBroker.class.getName());
   private static final ObjectMapper mapper = new ObjectMapper();
   private static LanceBroker lanceBrokerInstance;
   private Transceiver msgTransceiver;
   private Transceiver subTransceiver;
+  private boolean stopped = false;
 
-  private final Map<Topic, Queue<Message>> receivedMessages = new HashMap<>();
+  private final Map<Topic, Queue<Message>> receivedMessages = new ConcurrentHashMap<>();
 
-  private final Map<Topic, List<Subscriber>> subscribers = new HashMap<>();
+  private final Map<Topic, List<Subscriber>> subscribers = new ConcurrentHashMap<>();
 
   private LanceBroker() {
   }
@@ -63,6 +68,11 @@ public class LanceBroker implements Broker {
         Message message = entry.getValue().poll();
         List<Subscriber> subList = subscribers.get(message.getTopic());
         msgTransceiver.send(message, subList);
+//        try {
+//          TimeUnit.MILLISECONDS.sleep(1);
+//        } catch (InterruptedException e) {
+//          throw new RuntimeException(e);
+//        }
       }
     }
   }
@@ -98,6 +108,11 @@ public class LanceBroker implements Broker {
   public void closeSockets() {
     if (subTransceiver != null) subTransceiver.close();
     if (msgTransceiver != null) msgTransceiver.close();
+    stopped = true;
+  }
+
+  public boolean isRunning() {
+    return !stopped;
   }
 
   @Override

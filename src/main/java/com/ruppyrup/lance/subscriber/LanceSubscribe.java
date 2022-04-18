@@ -11,26 +11,43 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
-import java.util.Optional;
+import java.net.SocketException;
+import java.net.UnknownHostException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.FluxSink;
+import reactor.core.publisher.FluxSink.OverflowStrategy;
+import reactor.core.scheduler.Schedulers;
 
 public final class LanceSubscribe {
+
+  //todo need unsubscribe method to unsubscribe and close the socket
 
   private static final Logger LOGGER = Logger.getLogger(LanceSubscribe.class.getName());
   private static final ObjectMapper mapper = new ObjectMapper();
   private static final int lanceSubPort = 4446;
   private static final String LOCALHOST = "localhost";
   private final int receivePort;
+  private final ExecutorService service;
+  private final DatagramSocket socket;
+  private final InetAddress address;
+  public AtomicInteger counter = new AtomicInteger(0);
 
-  public LanceSubscribe(int receivePort) {
+  public LanceSubscribe(int receivePort) throws SocketException, UnknownHostException {
+    service = Executors.newFixedThreadPool(20);
     this.receivePort = receivePort;
+    socket = new DatagramSocket(receivePort);
+    address = InetAddress.getLocalHost();
   }
+
 
   public void subscribe(String subscriberName, Topic topic) {
     Subscriber subscriber = new LanceSubscriber(subscriberName, receivePort);
     Message message = new DataMessage(topic, subscriber.toJsonString());
-    try (DatagramSocket socket = new DatagramSocket()) {
-      InetAddress address = InetAddress.getByName(LOCALHOST);
+    try {
       byte[] dataToSend = getMessageBytes(message);
       DatagramPacket packet = new DatagramPacket(dataToSend, dataToSend.length, address, lanceSubPort);
       socket.send(packet);
@@ -39,11 +56,10 @@ public final class LanceSubscribe {
     }
   }
 
-  public Optional<Message> receive() {
+  public Message receive() {
     byte[] buffer = new byte[1024];
     Message receivedMessage = null;
-    try (DatagramSocket socket = new DatagramSocket(receivePort)) {
-      InetAddress address = InetAddress.getByName(LOCALHOST);
+    try {
       DatagramPacket packet = new DatagramPacket(buffer, buffer.length, address, receivePort);
       socket.receive(packet);
       byte[] receivedBytes = new byte[packet.getLength()];
@@ -53,7 +69,7 @@ public final class LanceSubscribe {
     } catch (IOException e) {
       LOGGER.warning("Error receiving datagram :: " + e.getMessage());
     }
-    return Optional.ofNullable(receivedMessage);
+    return receivedMessage;
   }
 
   private static byte[] getMessageBytes(Message message) {
@@ -65,31 +81,47 @@ public final class LanceSubscribe {
     return new byte[0];
   }
 
-//  private void emit(FluxSink<byte[]> emitter) {
-//    int count = 0;
-//    byte[] buf = new byte[256];
-//
-//    while (true) {
-//      DatagramPacket packet
-//          = new DatagramPacket(buf, buf.length);
-//      try {
-//        socket.receive(packet);
-//      } catch (IOException e) {
-//        e.printStackTrace();
-//      }
-//
-//      String received
-//          = new String(packet.getData(), 0, packet.getLength());
-//      System.out.println("Emitting :: " + received);
-//      emitter.next(packet.getData());
-//    }
+//  public Flux<Message> createUdpFlux() {
+//    return Flux.push(this::emit);
+//  }
 
-  public static void main(String[] args) {
-    LanceSubscribe subscriber = new LanceSubscribe( 6161);
-    subscriber.subscribe("rubsub", new Topic("monkey-topic"));
+  public Flux<Message> createUdpFlux() {
+    return Flux.create(this::emit, OverflowStrategy.BUFFER)
+        .publishOn(Schedulers.fromExecutorService(service));
+  }
+
+  private void emit(FluxSink<Message> emitter) {
     while (true) {
-      subscriber.receive();
+      emitter.next(receive());
     }
   }
+
+  private void handleMessage(Message message) {
+    System.out.println(counter.incrementAndGet());
+    System.out.println(Thread.currentThread().getName() + " -> Received topic :: " + message.getTopic());
+    System.out.println(Thread.currentThread().getName() + " -> Received message :: " + message.getContents());
+  }
+
+
+
+  public static void main(String[] args) throws SocketException, UnknownHostException {
+    LanceSubscribe subscriber = new LanceSubscribe( 6161);
+    Flux<Message> udpFlux = subscriber.createUdpFlux();
+    subscriber.subscribe("rubsub", new Topic("monkey-topic"));
+
+//    while (true) {
+//      subscriber.receive().ifPresent(LanceSubscribe::handleMessage);
+//    }
+
+
+
+        udpFlux.subscribe(
+            subscriber::handleMessage,
+            err -> System.out.println("Error: " + err.getMessage()),
+            () -> System.out.println("Done!"));
+
+  }
+
+
 
 }

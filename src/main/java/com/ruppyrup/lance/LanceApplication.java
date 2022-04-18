@@ -18,6 +18,7 @@ public class LanceApplication {
   public static void main(String[] args)
       throws SocketException, UnknownHostException, InterruptedException {
     System.out.println("Starting main....");
+    boolean running = true;
     Broker broker = LanceBroker.getInstance();
     DatagramSocket socket = new DatagramSocket(4445);
     Transceiver transceiver = new MsgTransceiver(socket, InetAddress.getLocalHost(), 4445);
@@ -28,19 +29,19 @@ public class LanceApplication {
 
 
     ScheduledExecutorService service = Executors.newSingleThreadScheduledExecutor();
-    service.scheduleAtFixedRate(() -> LanceBroker.getInstance().send(), 5, 3, TimeUnit.MILLISECONDS);
+    service.scheduleAtFixedRate(() -> LanceBroker.getInstance().send(), 10, 10, TimeUnit.MILLISECONDS);
     CompletableFuture<Void> subscriberFuture = CompletableFuture.runAsync(
         () -> {
-          while (true)
+          while (LanceBroker.getInstance().isRunning())
             LanceBroker.getInstance().register();
         });
     CompletableFuture<Void> receiverFuture = CompletableFuture.runAsync(
         () -> {
-          while (true)
+          while (LanceBroker.getInstance().isRunning())
             LanceBroker.getInstance().receive();
         });
 
-    Thread.sleep(120000);
+    Thread.sleep(990000);
 
     LanceBroker.getInstance().closeSockets();
     service.shutdownNow();

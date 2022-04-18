@@ -213,6 +213,19 @@ class BrokerTest {
       Assertions.assertArrayEquals(subArray, lanceBroker.getSubscribersByTopic(topic1).toArray(
           Subscriber[]::new));
     }
+
+    @Test
+    void testSubscribeTwiceToDegregisterSubscriber() {
+      Subscriber subscribe1 = new LanceSubscriber("sub1", 1001);
+      Subscriber subscribe2 = new LanceSubscriber("sub1", 1001);
+      Message subMessage1 = new DataMessage(topic1, subscribe1.toJsonString());
+      Message subMessage2 = new DataMessage(topic1, subscribe2.toJsonString());
+      subTransceiver.setMessage(subMessage1);
+      subTransceiver.setMessage(subMessage2);
+      lanceBroker.register();
+      lanceBroker.register();
+      Assertions.assertTrue(lanceBroker.getSubscribersByTopic(topic1).isEmpty());
+    }
   }
 }
 

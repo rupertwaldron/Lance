@@ -8,14 +8,12 @@ import com.ruppyrup.lance.subscribers.LanceSubscriber;
 import com.ruppyrup.lance.subscribers.Subscriber;
 import com.ruppyrup.lance.transceivers.Transceiver;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
 public class LanceBroker implements Broker {
@@ -68,11 +66,6 @@ public class LanceBroker implements Broker {
         Message message = entry.getValue().poll();
         List<Subscriber> subList = subscribers.get(message.getTopic());
         msgTransceiver.send(message, subList);
-//        try {
-//          TimeUnit.MILLISECONDS.sleep(1);
-//        } catch (InterruptedException e) {
-//          throw new RuntimeException(e);
-//        }
       }
     }
   }
@@ -96,12 +89,17 @@ public class LanceBroker implements Broker {
     }
 
     if (subscribers.containsKey(topic)) {
+      if (alreadyRegisteredThenDeRegister(topic, subscriber)) return;
       subscribers.get(topic).add(subscriber);
     } else {
       List<Subscriber> subscribeList = new ArrayList<>();
       subscribeList.add(subscriber);
       subscribers.put(topic, subscribeList);
     }
+  }
+
+  private boolean alreadyRegisteredThenDeRegister(Topic topic, Subscriber subscriber) {
+    return subscribers.get(topic).remove(subscriber);
   }
 
   @Override

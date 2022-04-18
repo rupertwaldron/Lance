@@ -1,5 +1,7 @@
 package com.ruppyrup.lance.subscriber;
 
+import static com.ruppyrup.lance.models.MessageUtils.getMessageBytes;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ruppyrup.lance.models.DataMessage;
@@ -29,7 +31,6 @@ public final class LanceSubscribe {
   private static final Logger LOGGER = Logger.getLogger(LanceSubscribe.class.getName());
   private static final ObjectMapper mapper = new ObjectMapper();
   private static final int lanceSubPort = 4446;
-  private static final String LOCALHOST = "localhost";
   private final int receivePort;
   private final ExecutorService service;
   private final DatagramSocket socket;
@@ -71,19 +72,6 @@ public final class LanceSubscribe {
     }
     return receivedMessage;
   }
-
-  private static byte[] getMessageBytes(Message message) {
-    try {
-      return mapper.writeValueAsBytes(message);
-    } catch (JsonProcessingException e) {
-      e.printStackTrace();
-    }
-    return new byte[0];
-  }
-
-//  public Flux<Message> createUdpFlux() {
-//    return Flux.push(this::emit);
-//  }
 
   public Flux<Message> createUdpFlux() {
     return Flux.create(this::emit, OverflowStrategy.BUFFER)

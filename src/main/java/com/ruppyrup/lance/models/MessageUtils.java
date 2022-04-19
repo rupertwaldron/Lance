@@ -6,6 +6,10 @@ import com.ruppyrup.lance.models.Message;
 import com.ruppyrup.lance.publisher.LancePublish;
 
 public class MessageUtils {
+
+  private MessageUtils() {
+  }
+
   private static final ObjectMapper mapper = new ObjectMapper();
 
   public static byte[] getMessageBytes(Message message) {

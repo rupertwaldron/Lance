@@ -71,7 +71,7 @@ public class Stepdefs {
   }
 
   @When("a publisher sends the message to Lance Broker")
-  public void aPublisherSendsTheMessageToLanceBroker() {
+  public void aPublisherSendsTheMessageToLanceBroker() throws SocketException, UnknownHostException {
     Message message = TestData.getData("message1", Message.class);
     new LancePublish().publish(message);
   }

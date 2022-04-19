@@ -24,30 +24,27 @@ import reactor.core.publisher.FluxSink.OverflowStrategy;
 import reactor.core.scheduler.Schedulers;
 
 public class LanceSubscriber {
-
-  //todo need unsubscribe method to unsubscribe and close the socket
-
   private static final Logger LOGGER = Logger.getLogger(LanceSubscriber.class.getName());
   private static final ObjectMapper mapper = new ObjectMapper();
   private static final int lanceSubPort = 4446;
   private final int receivePort;
-  private final ExecutorService service;
   private final DatagramSocket socket;
   private final InetAddress address;
+  private boolean isRunning;
   public AtomicInteger counter = new AtomicInteger(0);
 
   public LanceSubscriber(int receivePort, DatagramSocket socket, InetAddress address) {
     this.receivePort = receivePort;
     this.socket = socket;
     this.address = address;
-    service = Executors.newFixedThreadPool(20);
+    this.isRunning = true;
   }
 
   public LanceSubscriber(int receivePort) throws SocketException, UnknownHostException {
-    service = Executors.newFixedThreadPool(20);
     this.receivePort = receivePort;
     socket = new DatagramSocket(receivePort);
     address = InetAddress.getLocalHost();
+    this.isRunning = true;
   }
 
   public void subscribe(String subscriberName, Topic topic) {
@@ -61,6 +58,10 @@ public class LanceSubscriber {
     } catch (Exception ex) {
       LOGGER.warning("Publish has failed ... \n" + ex.getMessage());
     }
+  }
+
+  public void unsubscribe(String subscriberName, Topic topic) {
+    subscribe(subscriberName, topic);
   }
 
   public Message receive() {
@@ -81,11 +82,11 @@ public class LanceSubscriber {
 
   public Flux<Message> createUdpFlux() {
     return Flux.create(this::emit, OverflowStrategy.BUFFER)
-        .publishOn(Schedulers.fromExecutorService(service));
+        .publishOn(Schedulers.boundedElastic());
   }
 
   private void emit(FluxSink<Message> emitter) {
-    while (true) {
+    while (isRunning) {
       emitter.next(receive());
     }
   }
@@ -98,6 +99,11 @@ public class LanceSubscriber {
         Thread.currentThread().getName() + " -> Received message :: " + message.getContents());
   }
 
+  public void stop() {
+    isRunning = false;
+    socket.close();
+  }
+
   public static void main(String[] args) throws SocketException, UnknownHostException {
     LanceSubscriber subscriber = new LanceSubscriber(6161);
     Flux<Message> udpFlux = subscriber.createUdpFlux();
@@ -106,6 +112,9 @@ public class LanceSubscriber {
     udpFlux.subscribe(
         subscriber::handleMessage,
         err -> System.out.println("Error: " + err.getMessage()),
-        () -> System.out.println("Done!"));
+        () -> {
+          System.out.println("Done!");
+          subscriber.stop();
+        });
   }
 }

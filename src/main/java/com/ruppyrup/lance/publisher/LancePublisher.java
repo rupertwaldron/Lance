@@ -48,9 +48,10 @@ public class LancePublisher implements Publisher {
 
   public static void main(String[] args) throws SocketException, UnknownHostException {
     LancePublisher publisher = new LancePublisher();
-    IntStream.range(0, 9990)
+    IntStream.range(0, 990)
         .mapToObj(i -> "Hello from publisher on monkey-topic " + i)
         .forEach(message -> publisher.publish(new DataMessage(new Topic("monkey-topic"), message)));
+    publisher.closeSocket();
   }
 
 }

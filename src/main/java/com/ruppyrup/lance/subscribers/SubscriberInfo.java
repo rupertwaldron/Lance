@@ -1,6 +1,6 @@
 package com.ruppyrup.lance.subscribers;
 
-public interface Subscriber {
+public interface SubscriberInfo {
 
   String getSubscriberName();
 

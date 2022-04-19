@@ -8,7 +8,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ruppyrup.lance.models.DataMessage;
 import com.ruppyrup.lance.models.Message;
 import com.ruppyrup.lance.models.Topic;
-import com.ruppyrup.lance.subscribers.Subscriber;
+import com.ruppyrup.lance.subscribers.SubscriberInfo;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
@@ -26,7 +26,7 @@ class UdpTransceiverTest {
   private MockDatagramSocket socket;
   private Topic topic;
   private byte[] buffer = new byte[1024];
-  private List<Subscriber> subscribes;
+  private List<SubscriberInfo> subscribes;
   private final ObjectMapper objectMapper = new ObjectMapper();
 
   @BeforeEach
@@ -101,7 +101,7 @@ class MockDatagramSocket extends DatagramSocket {
   }
 }
 
-class MockSubscribe implements Subscriber {
+class MockSubscribe implements SubscriberInfo {
   private final int port;
 
   MockSubscribe(int port) {

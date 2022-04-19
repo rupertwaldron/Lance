@@ -3,7 +3,7 @@ package com.ruppyrup.lance.broker;
 
 import com.ruppyrup.lance.models.Message;
 import com.ruppyrup.lance.models.Topic;
-import com.ruppyrup.lance.subscribers.Subscriber;
+import com.ruppyrup.lance.subscribers.SubscriberInfo;
 import com.ruppyrup.lance.transceivers.Transceiver;
 import java.util.List;
 import java.util.Optional;
@@ -20,5 +20,5 @@ public interface Broker {
 
   void setMsgTransceiver(Transceiver msgTransceiver);
   Optional<Message> getNextMessageForTopic(Topic topic);
-  List<Subscriber> getSubscribersByTopic(Topic topic);
+  List<SubscriberInfo> getSubscribersByTopic(Topic topic);
 }

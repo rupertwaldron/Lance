@@ -13,16 +13,15 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-class LancePublishTest {
+class LancePublisherTest {
 
   @Test
   void checkSocketAndAddressAreInjected() throws IOException {
     MockSocket socket = new MockSocket();
     InetAddress address = InetAddress.getLoopbackAddress();
-    LancePublish publisher = new LancePublish(socket, address);
+    LancePublisher publisher = new LancePublisher(socket, address);
     Topic topic = new Topic("test1");
     Message message = new DataMessage(topic, "test1");
     byte[] dataToSend = MessageUtils.getMessageBytes(message);

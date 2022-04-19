@@ -8,8 +8,8 @@ import com.ruppyrup.lance.broker.LanceBroker;
 import com.ruppyrup.lance.models.DataMessage;
 import com.ruppyrup.lance.models.Message;
 import com.ruppyrup.lance.models.Topic;
-import com.ruppyrup.lance.subscribers.LanceSubscriber;
-import com.ruppyrup.lance.subscribers.Subscriber;
+import com.ruppyrup.lance.subscribers.LanceSubscriberInfo;
+import com.ruppyrup.lance.subscribers.SubscriberInfo;
 import com.ruppyrup.lance.transceivers.Transceiver;
 import java.util.ArrayList;
 import java.util.List;
@@ -177,7 +177,7 @@ class BrokerTest {
 
     @Test
     void testRegisterSubscriber() {
-      Subscriber subscribe = new LanceSubscriber("sub1", 1001);
+      SubscriberInfo subscribe = new LanceSubscriberInfo("sub1", 1001);
       Message subMessage = new DataMessage(topic1, subscribe.toJsonString());
       subTransceiver.setMessage(subMessage);
       lanceBroker.register();
@@ -186,8 +186,8 @@ class BrokerTest {
 
     @Test
     void testRegisterMultipleSubscribers() {
-      Subscriber subscribe1 = new LanceSubscriber("sub1", 1001);
-      Subscriber subscribe2 = new LanceSubscriber("sub2", 1002);
+      SubscriberInfo subscribe1 = new LanceSubscriberInfo("sub1", 1001);
+      SubscriberInfo subscribe2 = new LanceSubscriberInfo("sub2", 1002);
       Message subMessage1 = new DataMessage(topic1, subscribe1.toJsonString());
       Message subMessage2 = new DataMessage(topic2, subscribe2.toJsonString());
       subTransceiver.setMessage(subMessage1);
@@ -200,8 +200,8 @@ class BrokerTest {
 
     @Test
     void testRegisterMultipleSubscribersToSameTopic() {
-      Subscriber subscribe1 = new LanceSubscriber("sub1", 1001);
-      Subscriber subscribe2 = new LanceSubscriber("sub2", 1002);
+      SubscriberInfo subscribe1 = new LanceSubscriberInfo("sub1", 1001);
+      SubscriberInfo subscribe2 = new LanceSubscriberInfo("sub2", 1002);
       Message subMessage1 = new DataMessage(topic1, subscribe1.toJsonString());
       Message subMessage2 = new DataMessage(topic1, subscribe2.toJsonString());
       subTransceiver.setMessage(subMessage1);
@@ -209,15 +209,15 @@ class BrokerTest {
       lanceBroker.register();
       lanceBroker.register();
 
-      Subscriber[] subArray = {subscribe1, subscribe2};
+      SubscriberInfo[] subArray = {subscribe1, subscribe2};
       Assertions.assertArrayEquals(subArray, lanceBroker.getSubscribersByTopic(topic1).toArray(
-          Subscriber[]::new));
+          SubscriberInfo[]::new));
     }
 
     @Test
     void testSubscribeTwiceToDegregisterSubscriber() {
-      Subscriber subscribe1 = new LanceSubscriber("sub1", 1001);
-      Subscriber subscribe2 = new LanceSubscriber("sub1", 1001);
+      SubscriberInfo subscribe1 = new LanceSubscriberInfo("sub1", 1001);
+      SubscriberInfo subscribe2 = new LanceSubscriberInfo("sub1", 1001);
       Message subMessage1 = new DataMessage(topic1, subscribe1.toJsonString());
       Message subMessage2 = new DataMessage(topic1, subscribe2.toJsonString());
       subTransceiver.setMessage(subMessage1);
@@ -240,7 +240,7 @@ class MockTransceiver implements Transceiver {
   }
 
   @Override
-  public void send(Message message, List<Subscriber> subscribes) {
+  public void send(Message message, List<SubscriberInfo> subscribes) {
     System.out.println("Sending message " + message);
     sendCount++;
   }
@@ -282,7 +282,7 @@ class MockSubTransceiver implements Transceiver {
   }
 
   @Override
-  public void send(Message message, List<Subscriber> subscribes) {
+  public void send(Message message, List<SubscriberInfo> subscribes) {
     System.out.println("Sending message " + message);
     sendCount++;
   }

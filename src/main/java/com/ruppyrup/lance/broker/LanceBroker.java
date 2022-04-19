@@ -4,8 +4,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ruppyrup.lance.models.Message;
 import com.ruppyrup.lance.models.Topic;
-import com.ruppyrup.lance.subscribers.LanceSubscriber;
-import com.ruppyrup.lance.subscribers.Subscriber;
+import com.ruppyrup.lance.subscribers.LanceSubscriberInfo;
+import com.ruppyrup.lance.subscribers.SubscriberInfo;
 import com.ruppyrup.lance.transceivers.Transceiver;
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -29,7 +29,7 @@ public class LanceBroker implements Broker {
 
   private final Map<Topic, Queue<Message>> receivedMessages = new ConcurrentHashMap<>();
 
-  private final Map<Topic, List<Subscriber>> subscribers = new ConcurrentHashMap<>();
+  private final Map<Topic, List<SubscriberInfo>> subscribers = new ConcurrentHashMap<>();
 
   private LanceBroker() {
   }
@@ -64,7 +64,7 @@ public class LanceBroker implements Broker {
     for(var entry : receivedMessages.entrySet()) {
       while(!entry.getValue().isEmpty()) {
         Message message = entry.getValue().poll();
-        List<Subscriber> subList = subscribers.get(message.getTopic());
+        List<SubscriberInfo> subList = subscribers.get(message.getTopic());
         msgTransceiver.send(message, subList);
       }
     }
@@ -80,26 +80,26 @@ public class LanceBroker implements Broker {
     LOGGER.info("Registered :: " + stringSubscriber);
     Topic topic = message.getTopic();
 
-    Subscriber subscriber;
+    SubscriberInfo subscriberInfo;
     try {
-      subscriber = mapper.readValue(stringSubscriber, LanceSubscriber.class);
+      subscriberInfo = mapper.readValue(stringSubscriber, LanceSubscriberInfo.class);
     } catch (JsonProcessingException e) {
       LOGGER.warning("Can't convert string to subscriber" + e.getMessage());
       return;
     }
 
     if (subscribers.containsKey(topic)) {
-      if (alreadyRegisteredThenDeRegister(topic, subscriber)) return;
-      subscribers.get(topic).add(subscriber);
+      if (alreadyRegisteredThenDeRegister(topic, subscriberInfo)) return;
+      subscribers.get(topic).add(subscriberInfo);
     } else {
-      List<Subscriber> subscribeList = new ArrayList<>();
-      subscribeList.add(subscriber);
+      List<SubscriberInfo> subscribeList = new ArrayList<>();
+      subscribeList.add(subscriberInfo);
       subscribers.put(topic, subscribeList);
     }
   }
 
-  private boolean alreadyRegisteredThenDeRegister(Topic topic, Subscriber subscriber) {
-    return subscribers.get(topic).remove(subscriber);
+  private boolean alreadyRegisteredThenDeRegister(Topic topic, SubscriberInfo subscriberInfo) {
+    return subscribers.get(topic).remove(subscriberInfo);
   }
 
   @Override
@@ -129,7 +129,7 @@ public class LanceBroker implements Broker {
   }
 
   @Override
-  public List<Subscriber> getSubscribersByTopic(Topic topic) {
+  public List<SubscriberInfo> getSubscribersByTopic(Topic topic) {
     return subscribers.get(topic);
   }
 }

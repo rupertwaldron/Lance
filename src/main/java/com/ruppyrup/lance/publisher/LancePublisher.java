@@ -12,23 +12,24 @@ import java.net.UnknownHostException;
 import java.util.logging.Logger;
 import java.util.stream.IntStream;
 
-public class LancePublish {
+public class LancePublisher implements Publisher {
 
-  private static final Logger LOGGER = Logger.getLogger(LancePublish.class.getName());
+  private static final Logger LOGGER = Logger.getLogger(LancePublisher.class.getName());
   private static final int port = 4445;
   private final DatagramSocket socket;
   private final InetAddress address;
 
-  public LancePublish() throws SocketException, UnknownHostException {
+  public LancePublisher() throws SocketException, UnknownHostException {
     this.socket = new DatagramSocket();
     this.address = InetAddress.getLocalHost();
   }
 
-  public LancePublish(DatagramSocket socket, InetAddress address) {
+  public LancePublisher(DatagramSocket socket, InetAddress address) {
     this.socket = socket;
     this.address = address;
   }
 
+  @Override
   public void publish(Message message) {
     try {
       byte[] dataToSend = MessageUtils.getMessageBytes(message);
@@ -40,8 +41,13 @@ public class LancePublish {
     }
   }
 
+  @Override
+  public void closeSocket() {
+    socket.close();
+  }
+
   public static void main(String[] args) throws SocketException, UnknownHostException {
-    LancePublish publisher = new LancePublish();
+    LancePublisher publisher = new LancePublisher();
     IntStream.range(0, 9990)
         .mapToObj(i -> "Hello from publisher on monkey-topic " + i)
         .forEach(message -> publisher.publish(new DataMessage(new Topic("monkey-topic"), message)));

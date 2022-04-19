@@ -1,13 +1,13 @@
 package com.ruppyrup.lance.transceivers;
 
 import com.ruppyrup.lance.models.Message;
-import com.ruppyrup.lance.subscribers.Subscriber;
+import com.ruppyrup.lance.subscribers.SubscriberInfo;
 import java.util.List;
 import java.util.Optional;
 
 public interface Transceiver {
 
-  void send(Message message, List<Subscriber> subscribes);
+  void send(Message message, List<SubscriberInfo> subscribes);
   Optional<Message> receive();
 
   void close();

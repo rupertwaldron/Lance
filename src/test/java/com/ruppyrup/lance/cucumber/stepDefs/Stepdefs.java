@@ -1,12 +1,12 @@
 package com.ruppyrup.lance.cucumber.stepDefs;
 
 import com.ruppyrup.lance.broker.LanceBroker;
-import com.ruppyrup.lance.publisher.LancePublish;
-import com.ruppyrup.lance.subscriber.LanceSubscribe;
+import com.ruppyrup.lance.publisher.LancePublisher;
+import com.ruppyrup.lance.subscriber.LanceSubscriber;
 import com.ruppyrup.lance.models.DataMessage;
 import com.ruppyrup.lance.models.Message;
 import com.ruppyrup.lance.models.Topic;
-import com.ruppyrup.lance.subscribers.Subscriber;
+import com.ruppyrup.lance.subscribers.SubscriberInfo;
 import com.ruppyrup.lance.transceivers.Transceiver;
 import com.ruppyrup.lance.transceivers.MsgTransceiver;
 import io.cucumber.java.After;
@@ -73,7 +73,7 @@ public class Stepdefs {
   @When("a publisher sends the message to Lance Broker")
   public void aPublisherSendsTheMessageToLanceBroker() throws SocketException, UnknownHostException {
     Message message = TestData.getData("message1", Message.class);
-    new LancePublish().publish(message);
+    new LancePublisher().publish(message);
   }
 
   @Then("Lance Broker will store the message under the correct topic")
@@ -92,8 +92,8 @@ public class Stepdefs {
     Topic topic1 = new Topic(topic);
     TestData.setData("topic1", topic1);
     TestData.setData("subName", subscriberName);
-    LanceSubscribe lanceSubscribe = TestData.getData("lanceSubscribe", LanceSubscribe.class);
-    lanceSubscribe.subscribe(subscriberName, topic1);
+    LanceSubscriber lanceSubscriber = TestData.getData("lanceSubscribe", LanceSubscriber.class);
+    lanceSubscriber.subscribe(subscriberName, topic1);
   }
 
   @Then("the subscriber will be found for that topic")
@@ -104,7 +104,7 @@ public class Stepdefs {
     CompletableFuture<Void> subscriberFuture = TestData.getData("subscriberFuture",
         CompletableFuture.class);
     subscriberFuture.join();
-    List<Subscriber> subscribersByTopic = LanceBroker.getInstance().getSubscribersByTopic(topic);
+    List<SubscriberInfo> subscribersByTopic = LanceBroker.getInstance().getSubscribersByTopic(topic);
     Assertions.assertEquals(subscriberPort, subscribersByTopic.get(0).getPort());
     Assertions.assertEquals(subscriberName, subscribersByTopic.get(0).getSubscriberName());
   }
@@ -119,15 +119,15 @@ public class Stepdefs {
   @And("a subscriber is created with listening port {int}")
   public void aSubscriberIsCreatedWithListeningPort(int port)
       throws SocketException, UnknownHostException {
-    LanceSubscribe lanceSubscribe = new LanceSubscribe(port);
-    TestData.setData("lanceSubscribe", lanceSubscribe);
+    LanceSubscriber lanceSubscriber = new LanceSubscriber(port);
+    TestData.setData("lanceSubscribe", lanceSubscriber);
     TestData.setData("subPort", port);
   }
 
   @Then("the subscriber receives the message")
   public void theSubscriberReceivesTheMessage() {
-    LanceSubscribe lanceSubscribe = TestData.getData("lanceSubscribe", LanceSubscribe.class);
-    Message receivedMessage = lanceSubscribe.receive();
+    LanceSubscriber lanceSubscriber = TestData.getData("lanceSubscribe", LanceSubscriber.class);
+    Message receivedMessage = lanceSubscriber.receive();
     DataMessage expectedMessage = TestData.getData("message1", DataMessage.class);
     Assertions.assertEquals(expectedMessage, receivedMessage);
   }

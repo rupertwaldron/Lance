@@ -6,12 +6,12 @@ import java.util.Objects;
 import lombok.NoArgsConstructor;
 
 @NoArgsConstructor
-public class LanceSubscriber implements Subscriber {
+public class LanceSubscriberInfo implements SubscriberInfo {
 
   private String subscriberName;
   private int port;
 
-  public LanceSubscriber(String subscriberName, int port) {
+  public LanceSubscriberInfo(String subscriberName, int port) {
     this.subscriberName = subscriberName;
     this.port = port;
   }
@@ -45,7 +45,7 @@ public class LanceSubscriber implements Subscriber {
       return false;
     }
 
-    LanceSubscriber that = (LanceSubscriber) o;
+    LanceSubscriberInfo that = (LanceSubscriberInfo) o;
 
     if (port != that.port) {
       return false;

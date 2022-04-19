@@ -4,7 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ruppyrup.lance.models.DataMessage;
 import com.ruppyrup.lance.models.Message;
-import com.ruppyrup.lance.subscribers.Subscriber;
+import com.ruppyrup.lance.subscribers.SubscriberInfo;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
@@ -28,7 +28,7 @@ public class MsgTransceiver implements Transceiver {
   }
 
   @Override
-  public void send(Message message, List<Subscriber> subscribes) {
+  public void send(Message message, List<SubscriberInfo> subscribes) {
     if (subscribes == null) return;
     byte[] messageBytes = getMessageBytes(message);
     subscribes.forEach(subscriber -> {

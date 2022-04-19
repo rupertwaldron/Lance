@@ -96,7 +96,7 @@ class LanceSubscriberTest {
     Flux<Message> udpFlux = subscriber.createUdpFlux();
     udpFlux.take(1).subscribe(mess -> assertEquals(message, mess),
         System.out::println,
-        () -> subscriber.stop());
+        () -> subscriber.close());
   }
 }
 

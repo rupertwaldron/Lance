@@ -100,7 +100,7 @@ class BrokerTest {
 
     @Test
     void closeSocketsIsCalled() {
-      lanceBroker.closeSockets();
+      lanceBroker.close();
       assertTrue(udpTransceiver.isClosed());
     }
   }

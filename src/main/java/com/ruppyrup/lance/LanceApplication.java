@@ -43,7 +43,7 @@ public class LanceApplication {
 
     Thread.sleep(990000);
 
-    LanceBroker.getInstance().closeSockets();
+    LanceBroker.getInstance().close();
     service.shutdownNow();
     subscriberFuture.join();
     receiverFuture.join();

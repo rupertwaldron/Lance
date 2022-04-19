@@ -103,10 +103,12 @@ public class LanceBroker implements Broker {
   }
 
   @Override
-  public void closeSockets() {
+  public void close() {
     if (subTransceiver != null) subTransceiver.close();
     if (msgTransceiver != null) msgTransceiver.close();
     stopped = true;
+    receivedMessages.clear();
+    subscribers.clear();
   }
 
   public boolean isRunning() {

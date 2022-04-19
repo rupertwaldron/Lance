@@ -3,6 +3,7 @@ package com.ruppyrup.lance.subscriber;
 import static com.ruppyrup.lance.models.MessageUtils.getMessageBytes;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ruppyrup.lance.Closeable;
 import com.ruppyrup.lance.models.DataMessage;
 import com.ruppyrup.lance.models.Message;
 import com.ruppyrup.lance.models.Topic;
@@ -14,8 +15,6 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.UnknownHostException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
 import reactor.core.publisher.Flux;
@@ -23,7 +22,7 @@ import reactor.core.publisher.FluxSink;
 import reactor.core.publisher.FluxSink.OverflowStrategy;
 import reactor.core.scheduler.Schedulers;
 
-public class LanceSubscriber {
+public class LanceSubscriber implements Closeable {
   private static final Logger LOGGER = Logger.getLogger(LanceSubscriber.class.getName());
   private static final ObjectMapper mapper = new ObjectMapper();
   private static final int lanceSubPort = 4446;
@@ -99,7 +98,8 @@ public class LanceSubscriber {
         Thread.currentThread().getName() + " -> Received message :: " + message.getContents());
   }
 
-  public void stop() {
+  @Override
+  public void close() {
     isRunning = false;
     socket.close();
   }
@@ -114,7 +114,7 @@ public class LanceSubscriber {
         err -> System.out.println("Error: " + err.getMessage()),
         () -> {
           System.out.println("Done!");
-          subscriber.stop();
+          subscriber.close();
         });
   }
 }

@@ -1,5 +1,6 @@
 package com.ruppyrup.lance.cucumber.stepDefs;
 
+import com.ruppyrup.lance.Closeable;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -19,7 +20,16 @@ public class TestData {
   public static void clear() {
     senarioData.values().stream()
         .filter(val -> val instanceof CompletableFuture<?>)
-        .forEach(val -> ((CompletableFuture<?>) val).join());
+        .map(val -> ((CompletableFuture<?>) val).join())
+        .filter(joinable -> joinable instanceof Closeable)
+        .map(closeable -> (Closeable) closeable)
+        .forEach(Closeable::close);
+
+    senarioData.values().stream()
+        .filter(val -> val instanceof Closeable)
+        .map(closeable -> (Closeable) closeable)
+        .forEach(Closeable::close);
+
     senarioData.clear();
   }
 }

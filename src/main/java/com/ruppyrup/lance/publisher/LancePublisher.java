@@ -42,7 +42,7 @@ public class LancePublisher implements Publisher {
   }
 
   @Override
-  public void closeSocket() {
+  public void close() {
     socket.close();
   }
 
@@ -51,7 +51,7 @@ public class LancePublisher implements Publisher {
     IntStream.range(0, 990)
         .mapToObj(i -> "Hello from publisher on monkey-topic " + i)
         .forEach(message -> publisher.publish(new DataMessage(new Topic("monkey-topic"), message)));
-    publisher.closeSocket();
+    publisher.close();
   }
 
 }

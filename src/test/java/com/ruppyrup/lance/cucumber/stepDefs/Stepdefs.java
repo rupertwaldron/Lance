@@ -36,19 +36,21 @@ public class Stepdefs {
 
   @After
   public void teardown() {
-    LanceBroker.getInstance().closeSockets();
-    List<Runnable> schedulerService = TestData.getData("schedulerService",
-        ScheduledExecutorService.class).shutdownNow();
+    LanceBroker.getInstance().close();
+    TestData.getData("schedulerService", ScheduledExecutorService.class).shutdownNow();
     TestData.clear();
   }
 
-  @Given("Lance Broker is receiving subscriptions")
-  public void lanceBrokerIsReceivingUdpData() throws SocketException, UnknownHostException {
+  @Given("Lance Broker is receiving {int} subscriptions")
+  public void lanceBrokerIsReceivingUdpData(int subCount) throws SocketException, UnknownHostException {
     Transceiver subTransceiver = new MsgTransceiver(new DatagramSocket(4446),
         InetAddress.getLocalHost(), 4446);
     LanceBroker.getInstance().setSubTransceiver(subTransceiver);
     CompletableFuture<Void> subscriberFuture = CompletableFuture.runAsync(
-        () -> LanceBroker.getInstance().register());
+        () -> {
+          for (int i = 0; i < subCount; i++)
+            LanceBroker.getInstance().register();
+        });
     TestData.setData("subscriberFuture", subscriberFuture);
   }
 
@@ -96,17 +98,14 @@ public class Stepdefs {
     lanceSubscriber.subscribe(subscriberName, topic1);
   }
 
-  @Then("the subscriber will be found for that topic")
-  public void theSubscriberWillBeFoundForThatTopic() {
+  @Then("{int} subscriber(s) will be found for that topic")
+  public void theNumberOfSubscribersWillBeFoundForThatTopic(int subscriberCount) {
     Topic topic = TestData.getData("topic1", Topic.class);
-    String subscriberName = TestData.getData("subName", String.class);
-    int subscriberPort = TestData.getData("subPort", Integer.class);
     CompletableFuture<Void> subscriberFuture = TestData.getData("subscriberFuture",
         CompletableFuture.class);
     subscriberFuture.join();
     List<SubscriberInfo> subscribersByTopic = LanceBroker.getInstance().getSubscribersByTopic(topic);
-    Assertions.assertEquals(subscriberPort, subscribersByTopic.get(0).getPort());
-    Assertions.assertEquals(subscriberName, subscribersByTopic.get(0).getSubscriberName());
+    Assertions.assertEquals(subscriberCount, subscribersByTopic.size());
   }
 
   @Given("Lance Subscriber is receiving data on port {int}")

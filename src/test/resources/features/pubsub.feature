@@ -14,7 +14,7 @@ Feature: Publish and Subscribe Feature
     And a publisher sends the message "<message>" to Lance Broker 1 time
     Then the subscriber with name "<subscriberName>" receives the message "<message>" 1 time
 
-  Example:
+  Example: One subscriber one message
   | topicName | subscriberName | message      |
   | topic1    | subName1       | test message |
 
@@ -27,7 +27,7 @@ Feature: Publish and Subscribe Feature
     And a subscriber registers for the topic "<topicName>" with subscriber name "<subscriberName>"
     Then 0 subscribers will be found for topic "<topicName>"
 
-  Example:
+  Example: Subscribe and unsubscribe from one topic
   | topicName | subscriberName |
   | topic1    | subName1       |
 
@@ -48,7 +48,7 @@ Feature: Publish and Subscribe Feature
     Then the subscriber with name "<subscriberName1>" receives the message "<message1>" 1 time
     And the subscriber with name "<subscriberName2>" receives the message "<message2>" 1 time
 
-  Example:
+  Example: Two subscribers receive their respective messages
   | topicName1 | subscriberName1 | message1       | topicName2 | subscriberName2 | message2       |
   | topic1     | subName1        | test1 message1 | topic2     | subName2        | test2 message2 |
 
@@ -63,7 +63,7 @@ Feature: Publish and Subscribe Feature
     And a publisher sends the message "<message>" to Lance Broker 10 times
     Then the subscriber with name "<subscriberName>" receives the message "<message>" 10 times
 
-  Example:
+  Example: One subscriber receives multiple messages
   | topicName | subscriberName | message      |
   | topic1    | subName1       | test message |
 

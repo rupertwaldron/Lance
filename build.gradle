@@ -1,5 +1,7 @@
 plugins {
     id 'java'
+    id 'java-library'
+    id 'maven-publish'
 }
 
 group = 'com.ruppyrup'
@@ -33,4 +35,24 @@ test {
 
 task RunCukesTest(type: Test) {
     include '**/runners/*Runner.class'
+}
+
+/**
+ * use below to publishToMavenLocal .m2 directory
+ */
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            from components.java
+            versionMapping {
+                usage('java-api') {
+                    fromResolutionOf('runtimeClasspath')
+                }
+                usage('java-runtime') {
+                    fromResolutionResult()
+                }
+            }
+        }
+    }
 }

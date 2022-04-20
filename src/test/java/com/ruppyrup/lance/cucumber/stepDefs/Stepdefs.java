@@ -54,13 +54,16 @@ public class Stepdefs {
     TestData.setData("subscriberFuture", subscriberFuture);
   }
 
-  @Given("Lance Broker is receiving message data")
-  public void lanceBrokerIsReceivingMessageData() throws SocketException, UnknownHostException {
+  @Given("Lance Broker can receive {int} message(s)")
+  public void lanceBrokerIsReceivingMessageData(int messageCount) throws SocketException, UnknownHostException {
     Transceiver msgTransceiver = new MsgTransceiver(new DatagramSocket(4445),
         InetAddress.getLocalHost(), 4445);
     LanceBroker.getInstance().setMsgTransceiver(msgTransceiver);
     CompletableFuture<Void> receiverFuture = CompletableFuture.runAsync(
-        () -> LanceBroker.getInstance().receive());
+        () -> {
+          for (int i = 0; i < messageCount; i++)
+            LanceBroker.getInstance().receive();
+        });
     TestData.setData("receiverFuture", receiverFuture);
   }
 
@@ -68,13 +71,12 @@ public class Stepdefs {
   public void aUdpMessageIsCreatedWithDataAndTopic(String data, String topic) {
     Topic topic1 = new Topic(topic);
     Message message1 = new DataMessage(topic1, data);
-    TestData.setData("message1", message1);
-    TestData.setData("topic1", topic1);
+    TestData.setData(data, message1);
   }
 
-  @When("a publisher sends the message to Lance Broker")
-  public void aPublisherSendsTheMessageToLanceBroker() throws SocketException, UnknownHostException {
-    Message message = TestData.getData("message1", Message.class);
+  @When("a publisher sends the message {string} to Lance Broker")
+  public void aPublisherSendsTheMessageToLanceBroker(String messageData) throws SocketException, UnknownHostException {
+    Message message = TestData.getData(messageData, Message.class);
     new LancePublisher().publish(message);
   }
 
@@ -92,15 +94,14 @@ public class Stepdefs {
   @When("a subscriber registers for the topic {string} with subscriber name {string}")
   public void aSubscriberRegistersForTopic(String topic, String subscriberName) {
     Topic topic1 = new Topic(topic);
-    TestData.setData("topic1", topic1);
-    TestData.setData("subName", subscriberName);
-    LanceSubscriber lanceSubscriber = TestData.getData("lanceSubscribe", LanceSubscriber.class);
+    TestData.setData(topic, topic1);
+    LanceSubscriber lanceSubscriber = TestData.getData(subscriberName, LanceSubscriber.class);
     lanceSubscriber.subscribe(subscriberName, topic1);
   }
 
-  @Then("{int} subscriber(s) will be found for that topic")
-  public void theNumberOfSubscribersWillBeFoundForThatTopic(int subscriberCount) {
-    Topic topic = TestData.getData("topic1", Topic.class);
+  @Then("{int} subscriber(s) will be found for topic {string}")
+  public void theNumberOfSubscribersWillBeFoundForThatTopic(int subscriberCount, String topicName) {
+    Topic topic = TestData.getData(topicName, Topic.class);
     CompletableFuture<Void> subscriberFuture = TestData.getData("subscriberFuture",
         CompletableFuture.class);
     subscriberFuture.join();
@@ -115,19 +116,19 @@ public class Stepdefs {
     TestData.setData("subscriberFuture", subscriberFuture);
   }
 
-  @And("a subscriber is created with listening port {int}")
-  public void aSubscriberIsCreatedWithListeningPort(int port)
+  @And("a subscriber is created with listening port {int} with name {string}")
+  public void aSubscriberIsCreatedWithListeningPort(int port, String subscriberName)
       throws SocketException, UnknownHostException {
     LanceSubscriber lanceSubscriber = new LanceSubscriber(port);
-    TestData.setData("lanceSubscribe", lanceSubscriber);
-    TestData.setData("subPort", port);
+    TestData.setData(subscriberName, lanceSubscriber);
+    TestData.setData(subscriberName + "Port", port);
   }
 
-  @Then("the subscriber receives the message")
-  public void theSubscriberReceivesTheMessage() {
-    LanceSubscriber lanceSubscriber = TestData.getData("lanceSubscribe", LanceSubscriber.class);
+  @Then("the subscriber with name {string} receives the message {string}")
+  public void theSubscriberReceivesTheMessage(String subscriberName, String messageData) {
+    LanceSubscriber lanceSubscriber = TestData.getData(subscriberName, LanceSubscriber.class);
     Message receivedMessage = lanceSubscriber.receive();
-    DataMessage expectedMessage = TestData.getData("message1", DataMessage.class);
+    DataMessage expectedMessage = TestData.getData(messageData, DataMessage.class);
     Assertions.assertEquals(expectedMessage, receivedMessage);
   }
 

@@ -74,10 +74,13 @@ public class Stepdefs {
     TestData.setData(data, message1);
   }
 
-  @When("a publisher sends the message {string} to Lance Broker")
-  public void aPublisherSendsTheMessageToLanceBroker(String messageData) throws SocketException, UnknownHostException {
+  @When("a publisher sends the message {string} to Lance Broker {int} time(s)")
+  public void aPublisherSendsTheMessageToLanceBroker(String messageData, int publishCount) throws SocketException, UnknownHostException {
     Message message = TestData.getData(messageData, Message.class);
-    new LancePublisher().publish(message);
+    var publisher = new LancePublisher();
+    for (int i = 0; i < publishCount; i++) {
+      publisher.publish(message);
+    }
   }
 
   @Then("Lance Broker will store the message under the correct topic")
@@ -124,12 +127,14 @@ public class Stepdefs {
     TestData.setData(subscriberName + "Port", port);
   }
 
-  @Then("the subscriber with name {string} receives the message {string}")
-  public void theSubscriberReceivesTheMessage(String subscriberName, String messageData) {
+  @Then("the subscriber with name {string} receives the message {string} {int} time(s)")
+  public void theSubscriberReceivesTheMessage(String subscriberName, String messageData, int messageCount) {
     LanceSubscriber lanceSubscriber = TestData.getData(subscriberName, LanceSubscriber.class);
-    Message receivedMessage = lanceSubscriber.receive();
     DataMessage expectedMessage = TestData.getData(messageData, DataMessage.class);
-    Assertions.assertEquals(expectedMessage, receivedMessage);
+    for (int i = 0; i < messageCount; i++) {
+      Message receivedMessage = lanceSubscriber.receive();
+      Assertions.assertEquals(expectedMessage, receivedMessage);
+    }
   }
 
   @And("Lance Broker is sending every {int} milliseconds intervals")

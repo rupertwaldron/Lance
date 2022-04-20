@@ -8,39 +8,62 @@ Feature: Publish and Subscribe Feature
     And Lance Broker is receiving 1 subscriptions
     And Lance Broker is sending every 3 milliseconds intervals
     And a subscriber is created with listening port 3333 with name "<subscriberName>"
-    And a subscriber registers for the topic "<topicName>" with subscriber name "<subscriberName>"
-    Then 1 subscriber will be found for topic "<topicName>"
+    When a subscriber registers for the topic "<topicName>" with subscriber name "<subscriberName>"
+    And 1 subscriber will be found for topic "<topicName>"
     And a udp message is created with data "<message>" and topic "<topicName>"
-    When a publisher sends the message "<message>" to Lance Broker
-    Then the subscriber with name "<subscriberName>" receives the message "<message>"
+    And a publisher sends the message "<message>" to Lance Broker 1 time
+    Then the subscriber with name "<subscriberName>" receives the message "<message>" 1 time
 
-    Example:
-      | topicName | subscriberName | message      |
-      | topic1    | subName1       | test message |
+  Example:
+  | topicName | subscriberName | message      |
+  | topic1    | subName1       | test message |
 
   Scenario: Subscriber unsubscribes and receives no messages
     Given Lance Broker can receive 1 message
     And Lance Broker is receiving 2 subscriptions
     And Lance Broker is sending every 3 milliseconds intervals
-    And a subscriber is created with listening port 3333 with name "subName1"
-    And a subscriber registers for the topic "topic1" with subscriber name "subName1"
-    And a subscriber registers for the topic "topic1" with subscriber name "subName1"
-    Then 0 subscribers will be found for topic "topic1"
+    And a subscriber is created with listening port 3333 with name "<subscriberName>"
+    When a subscriber registers for the topic "<topicName>" with subscriber name "<subscriberName>"
+    And a subscriber registers for the topic "<topicName>" with subscriber name "<subscriberName>"
+    Then 0 subscribers will be found for topic "<topicName>"
+
+  Example:
+  | topicName | subscriberName |
+  | topic1    | subName1       |
 
   Scenario: Multiple subscribers receive their respective messages
     Given Lance Broker can receive 2 messages
     And Lance Broker is receiving 2 subscriptions
     And Lance Broker is sending every 3 milliseconds intervals
-    And a subscriber is created with listening port 3333 with name "subName1"
-    And a subscriber registers for the topic "topic1" with subscriber name "subName1"
-    And a subscriber is created with listening port 3334 with name "subName2"
-    And a subscriber registers for the topic "topic2" with subscriber name "subName2"
-    Then 1 subscriber will be found for topic "topic1"
-    And 1 subscriber will be found for topic "topic2"
-    And a udp message is created with data "test1 message1" and topic "topic1"
-    And a udp message is created with data "test2 message2" and topic "topic2"
-    When a publisher sends the message "test1 message1" to Lance Broker
-    When a publisher sends the message "test2 message2" to Lance Broker
-    Then the subscriber with name "subName1" receives the message "test1 message1"
-    Then the subscriber with name "subName2" receives the message "test2 message2"
+    And a subscriber is created with listening port 3333 with name "<subscriberName1>"
+    And a subscriber registers for the topic "<topicName1>" with subscriber name "<subscriberName1>"
+    And a subscriber is created with listening port 3334 with name "<subscriberName2>"
+    And a subscriber registers for the topic "<topicName2>" with subscriber name "<subscriberName2>"
+    And a udp message is created with data "<message1>" and topic "<topicName1>"
+    And a udp message is created with data "<message2>" and topic "<topicName2>"
+    And 1 subscriber will be found for topic "<topicName1>"
+    And 1 subscriber will be found for topic "<topicName2>"
+    When a publisher sends the message "<message1>" to Lance Broker 1 time
+    And a publisher sends the message "<message2>" to Lance Broker 1 time
+    Then the subscriber with name "<subscriberName1>" receives the message "<message1>" 1 time
+    And the subscriber with name "<subscriberName2>" receives the message "<message2>" 1 time
+
+  Example:
+  | topicName1 | subscriberName1 | message1       | topicName2 | subscriberName2 | message2       |
+  | topic1     | subName1        | test1 message1 | topic2     | subName2        | test2 message2 |
+
+  Scenario A subscriber can receive multiple messages
+    Given Lance Broker can receive 10 messages
+    And Lance Broker is receiving 1 subscriptions
+    And Lance Broker is sending every 3 milliseconds intervals
+    And a subscriber is created with listening port 3333 with name "<subscriberName>"
+    When a subscriber registers for the topic "<topicName>" with subscriber name "<subscriberName>"
+    And 1 subscriber will be found for topic "<topicName>"
+    And a udp message is created with data "<message>" and topic "<topicName>"
+    And a publisher sends the message "<message>" to Lance Broker 10 times
+    Then the subscriber with name "<subscriberName>" receives the message "<message>" 10 times
+
+  Example:
+  | topicName | subscriberName | message      |
+  | topic1    | subName1       | test message |
 

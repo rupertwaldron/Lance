@@ -34,7 +34,6 @@ public class MsgTransceiver implements Transceiver {
     subscribes.forEach(subscriber -> {
       try {
         socket.send(new DatagramPacket(messageBytes, messageBytes.length, address, subscriber.getPort()));
-        LOGGER.info("Sending message to subscriber: " + subscriber + " with contents " + message);
       } catch (IOException e) {
         LOGGER.warning("Error sending packing for message :: " + message);
       }
@@ -51,7 +50,6 @@ public class MsgTransceiver implements Transceiver {
       byte[] receivedBytes = new byte[packet.getLength()];
       System.arraycopy(packet.getData(), 0, receivedBytes, 0, packet.getLength());
       receivedMessage = mapper.readValue(receivedBytes, DataMessage.class);
-      LOGGER.info("Msg Transceiver received -> " + receivedMessage);
     } catch (IOException e) {
       LOGGER.warning("Error receiving datagram :: " + e.getMessage());
     }

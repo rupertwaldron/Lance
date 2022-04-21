@@ -8,6 +8,7 @@ import com.ruppyrup.lance.subscribers.LanceSubscriberInfo;
 import com.ruppyrup.lance.subscribers.SubscriberInfo;
 import com.ruppyrup.lance.transceivers.Transceiver;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -47,7 +48,7 @@ public class LanceBroker implements Broker {
     if (optionalMessage.isEmpty()) return;
 
     Message message = optionalMessage.get();
-    LOGGER.info("Message received :: " + message.getContents());
+    LOGGER.info("Message received from publisher :: " + message.getContents());
     Topic topic = message.getTopic();
 
     if (receivedMessages.containsKey(topic)) {
@@ -61,11 +62,17 @@ public class LanceBroker implements Broker {
 
   @Override
   public void send() {
+    LOGGER.info("Starting send");
     for(var entry : receivedMessages.entrySet()) {
+      LOGGER.info("Starting send");
       while(!entry.getValue().isEmpty()) {
-        Message message = entry.getValue().poll();
+        Message message = entry.getValue().peek();
         List<SubscriberInfo> subList = subscribers.get(message.getTopic());
-        msgTransceiver.send(message, subList);
+        LOGGER.info("Sending message to following subscribers :: " + subList);
+        if (subList != null) {
+          msgTransceiver.send(message, subList);
+          entry.getValue().poll();
+        }
       }
     }
   }

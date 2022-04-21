@@ -13,12 +13,14 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-public class LanceApplication {
+public class LanceApplication implements Closeable {
 
-  public static void main(String[] args)
-      throws SocketException, UnknownHostException, InterruptedException {
+  private ScheduledExecutorService service;
+  private CompletableFuture<Void> subscriberFuture;
+  private CompletableFuture<Void> receiverFuture;
+
+  public void start() throws SocketException, UnknownHostException {
     System.out.println("Starting main....");
-    boolean running = true;
     Broker broker = LanceBroker.getInstance();
     DatagramSocket socket = new DatagramSocket(4445);
     Transceiver transceiver = new MsgTransceiver(socket, InetAddress.getLocalHost(), 4445);
@@ -27,27 +29,35 @@ public class LanceApplication {
         InetAddress.getLocalHost(), 4446);
     LanceBroker.getInstance().setSubTransceiver(subTransceiver);
 
-
-    ScheduledExecutorService service = Executors.newSingleThreadScheduledExecutor();
-    service.scheduleAtFixedRate(() -> LanceBroker.getInstance().send(), 10, 10, TimeUnit.MILLISECONDS);
-    CompletableFuture<Void> subscriberFuture = CompletableFuture.runAsync(
+    service = Executors.newSingleThreadScheduledExecutor();
+    service.scheduleAtFixedRate(() -> LanceBroker.getInstance().send(), 0, 10, TimeUnit.MILLISECONDS);
+    subscriberFuture = CompletableFuture.runAsync(
         () -> {
           while (LanceBroker.getInstance().isRunning())
             LanceBroker.getInstance().register();
         });
-    CompletableFuture<Void> receiverFuture = CompletableFuture.runAsync(
+    receiverFuture = CompletableFuture.runAsync(
         () -> {
           while (LanceBroker.getInstance().isRunning())
             LanceBroker.getInstance().receive();
         });
+  }
 
+  public static void main(String[] args)
+      throws SocketException, UnknownHostException, InterruptedException {
+
+    LanceApplication app = new LanceApplication();
+    app.start();
     Thread.sleep(990000);
+    app.close();
 
+  }
+
+  @Override
+  public void close() {
     LanceBroker.getInstance().close();
     service.shutdownNow();
     subscriberFuture.join();
     receiverFuture.join();
-
-
   }
 }

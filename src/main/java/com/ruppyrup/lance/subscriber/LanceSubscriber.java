@@ -22,7 +22,7 @@ import reactor.core.publisher.FluxSink;
 import reactor.core.publisher.FluxSink.OverflowStrategy;
 import reactor.core.scheduler.Schedulers;
 
-public class LanceSubscriber implements Closeable {
+public class LanceSubscriber implements Subscriber {
   private static final Logger LOGGER = Logger.getLogger(LanceSubscriber.class.getName());
   private static final ObjectMapper mapper = new ObjectMapper();
   private static final int lanceSubPort = 4446;
@@ -46,6 +46,7 @@ public class LanceSubscriber implements Closeable {
     this.isRunning = true;
   }
 
+  @Override
   public void subscribe(String subscriberName, Topic topic) {
     SubscriberInfo subscriberInfo = new LanceSubscriberInfo(subscriberName, receivePort);
     Message message = new DataMessage(topic, subscriberInfo.toJsonString());
@@ -59,10 +60,12 @@ public class LanceSubscriber implements Closeable {
     }
   }
 
+  @Override
   public void unsubscribe(String subscriberName, Topic topic) {
     subscribe(subscriberName, topic);
   }
 
+  @Override
   public Message receive() {
     byte[] buffer = new byte[1024];
     Message receivedMessage = null;
@@ -79,6 +82,7 @@ public class LanceSubscriber implements Closeable {
     return receivedMessage;
   }
 
+  @Override
   public Flux<Message> createUdpFlux() {
     return Flux.create(this::emit, OverflowStrategy.BUFFER)
         .publishOn(Schedulers.boundedElastic());
@@ -104,17 +108,17 @@ public class LanceSubscriber implements Closeable {
     socket.close();
   }
 
-  public static void main(String[] args) throws SocketException, UnknownHostException {
-    LanceSubscriber subscriber = new LanceSubscriber(6161);
-    Flux<Message> udpFlux = subscriber.createUdpFlux();
-    subscriber.subscribe("rubsub", new Topic("monkey-topic"));
-
-    udpFlux.subscribe(
-        subscriber::handleMessage,
-        err -> System.out.println("Error: " + err.getMessage()),
-        () -> {
-          System.out.println("Done!");
-          subscriber.close();
-        });
-  }
+//  public static void main(String[] args) throws SocketException, UnknownHostException {
+//    LanceSubscriber subscriber = new LanceSubscriber(6161);
+//    Flux<Message> udpFlux = subscriber.createUdpFlux();
+//    subscriber.subscribe("rubsub", new Topic("monkey-topic"));
+//
+//    udpFlux.subscribe(
+//        subscriber::handleMessage,
+//        err -> System.out.println("Error: " + err.getMessage()),
+//        () -> {
+//          System.out.println("Done!");
+//          subscriber.close();
+//        });
+//  }
 }

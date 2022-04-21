@@ -67,3 +67,22 @@ Feature: Publish and Subscribe Feature
   | topicName | subscriberName | message      |
   | topic1    | subName1       | test message |
 
+  Scenario: Multiple subscribers receive same messages when subscribe to same topic
+    Given Lance Broker can receive 10 messages
+    And Lance Broker is receiving 2 subscriptions
+    And Lance Broker is sending every 3 milliseconds intervals
+    And a subscriber is created with listening port 3333 with name "<subscriberName1>"
+    And a subscriber registers for the topic "<topicName1>" with subscriber name "<subscriberName1>"
+    And a subscriber is created with listening port 3334 with name "<subscriberName2>"
+    And a subscriber registers for the topic "<topicName1>" with subscriber name "<subscriberName2>"
+    And a udp message is created with data "<message1>" and topic "<topicName1>"
+    And 2 subscribers will be found for topic "<topicName1>"
+    When a publisher sends the message "<message1>" to Lance Broker 10 time
+    Then the subscriber with name "<subscriberName1>" receives the message "<message1>" 10 times
+    And the subscriber with name "<subscriberName2>" receives the message "<message1>" 10 time
+
+  Example: Two subscribers receive their respective messages
+  | topicName1 | subscriberName1 | message1       |
+  | topic1     | subName1        | test1 message1 |
+
+

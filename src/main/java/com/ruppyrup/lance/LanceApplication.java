@@ -30,7 +30,7 @@ public class LanceApplication implements Closeable {
     LanceBroker.getInstance().setSubTransceiver(subTransceiver);
 
     service = Executors.newSingleThreadScheduledExecutor();
-    service.scheduleAtFixedRate(() -> LanceBroker.getInstance().send(), 0, 10, TimeUnit.MILLISECONDS);
+    service.scheduleAtFixedRate(() -> LanceBroker.getInstance().send(), 0, 1000, TimeUnit.MILLISECONDS);
     subscriberFuture = CompletableFuture.runAsync(
         () -> {
           while (LanceBroker.getInstance().isRunning())

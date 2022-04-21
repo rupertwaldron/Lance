@@ -45,7 +45,9 @@ public class LanceBroker implements Broker {
   @Override
   public void receive() {
     Optional<Message> optionalMessage = msgTransceiver.receive();
-    if (optionalMessage.isEmpty()) return;
+    if (optionalMessage.isEmpty()) {
+      return;
+    }
 
     Message message = optionalMessage.get();
     LOGGER.info("Message received from publisher :: " + message.getContents());
@@ -62,17 +64,17 @@ public class LanceBroker implements Broker {
 
   @Override
   public void send() {
-    LOGGER.info("Starting send");
-    for(var entry : receivedMessages.entrySet()) {
-      LOGGER.info("Starting send");
-      while(!entry.getValue().isEmpty()) {
+    for (var entry : receivedMessages.entrySet()) {
+      while (!entry.getValue().isEmpty()) {
         Message message = entry.getValue().peek();
         List<SubscriberInfo> subList = subscribers.get(message.getTopic());
-        LOGGER.info("Sending message to following subscribers :: " + subList);
-        if (subList != null) {
-          msgTransceiver.send(message, subList);
-          entry.getValue().poll();
+        if (subList == null) {
+          break;
         }
+        LOGGER.info("Sending message to following subscribers :: " + subList);
+        msgTransceiver.send(message, subList);
+        entry.getValue().poll();
+
       }
     }
   }
@@ -80,7 +82,9 @@ public class LanceBroker implements Broker {
   @Override
   public void register() {
     Optional<Message> optionalMessage = subTransceiver.receive();
-    if (optionalMessage.isEmpty()) return;
+    if (optionalMessage.isEmpty()) {
+      return;
+    }
 
     Message message = optionalMessage.get();
     String stringSubscriber = message.getContents();
@@ -96,7 +100,9 @@ public class LanceBroker implements Broker {
     }
 
     if (subscribers.containsKey(topic)) {
-      if (alreadyRegisteredThenDeRegister(topic, subscriberInfo)) return;
+      if (alreadyRegisteredThenDeRegister(topic, subscriberInfo)) {
+        return;
+      }
       subscribers.get(topic).add(subscriberInfo);
     } else {
       List<SubscriberInfo> subscribeList = new ArrayList<>();
@@ -111,8 +117,12 @@ public class LanceBroker implements Broker {
 
   @Override
   public void close() {
-    if (subTransceiver != null) subTransceiver.close();
-    if (msgTransceiver != null) msgTransceiver.close();
+    if (subTransceiver != null) {
+      subTransceiver.close();
+    }
+    if (msgTransceiver != null) {
+      msgTransceiver.close();
+    }
     stopped = true;
     receivedMessages.clear();
     subscribers.clear();

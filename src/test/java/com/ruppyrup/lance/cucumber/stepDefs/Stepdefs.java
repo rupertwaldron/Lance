@@ -78,6 +78,7 @@ public class Stepdefs {
   public void aPublisherSendsTheMessageToLanceBroker(String messageData, int publishCount) throws SocketException, UnknownHostException {
     Message message = TestData.getData(messageData, Message.class);
     var publisher = new LancePublisher();
+    publisher.start();
     for (int i = 0; i < publishCount; i++) {
       publisher.publish(message);
     }
@@ -123,6 +124,7 @@ public class Stepdefs {
   public void aSubscriberIsCreatedWithListeningPort(int port, String subscriberName)
       throws SocketException, UnknownHostException {
     LanceSubscriber lanceSubscriber = new LanceSubscriber(port);
+    lanceSubscriber.start();
     TestData.setData(subscriberName, lanceSubscriber);
     TestData.setData(subscriberName + "Port", port);
   }

@@ -10,16 +10,20 @@ import java.net.SocketException;
 import java.net.UnknownHostException;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.ApplicationContext;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
+@TestPropertySource(properties = "lance.subscriber.port=4444")
 class LanceConfigTest {
 
   @Autowired
@@ -38,6 +42,17 @@ class LanceConfigTest {
     application.start();
   }
 
+  @BeforeEach
+  void start() throws SocketException {
+    subscriber.start();
+    publisher.start();
+  }
+
+  @AfterEach
+  void close() {
+    subscriber.close();
+  }
+
   @AfterAll
   static void tearDown() {
     application.close();
@@ -47,16 +62,6 @@ class LanceConfigTest {
   void checkBeans() {
     Assertions.assertThat(appContext.containsBean("publisher")).isTrue();
     Assertions.assertThat(appContext.containsBean("subscriber")).isTrue();
-  }
-
-  @Test
-  void publisher() {
-    Assertions.assertThat(publisher).isNotNull();
-  }
-
-  @Test
-  void subscriber() {
-    Assertions.assertThat(subscriber).isNotNull();
   }
 
   @Test

@@ -58,7 +58,8 @@ public class MsgTransceiver implements Transceiver {
 
   @Override
   public void close() {
-    socket.close();
+    if (socket != null)
+      socket.close();
   }
 
   private byte[] getMessageBytes(Message message) {

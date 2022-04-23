@@ -3,7 +3,6 @@ package com.ruppyrup.lance.subscriber;
 import static com.ruppyrup.lance.models.MessageUtils.getMessageBytes;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.ruppyrup.lance.Closeable;
 import com.ruppyrup.lance.models.DataMessage;
 import com.ruppyrup.lance.models.Message;
 import com.ruppyrup.lance.models.Topic;
@@ -27,7 +26,7 @@ public class LanceSubscriber implements Subscriber {
   private static final ObjectMapper mapper = new ObjectMapper();
   private static final int lanceSubPort = 4446;
   private final int receivePort;
-  private final DatagramSocket socket;
+  private DatagramSocket socket;
   private final InetAddress address;
   private boolean isRunning;
   public AtomicInteger counter = new AtomicInteger(0);
@@ -39,11 +38,16 @@ public class LanceSubscriber implements Subscriber {
     this.isRunning = true;
   }
 
-  public LanceSubscriber(int receivePort) throws SocketException, UnknownHostException {
+  public LanceSubscriber(int receivePort) throws UnknownHostException {
     this.receivePort = receivePort;
-    socket = new DatagramSocket(receivePort);
+
     address = InetAddress.getLocalHost();
     this.isRunning = true;
+  }
+
+  @Override
+  public void start() throws SocketException {
+    socket = new DatagramSocket(receivePort);
   }
 
   @Override
@@ -105,7 +109,8 @@ public class LanceSubscriber implements Subscriber {
   @Override
   public void close() {
     isRunning = false;
-    socket.close();
+    if (socket != null)
+      socket.close();
   }
 
 //  public static void main(String[] args) throws SocketException, UnknownHostException {

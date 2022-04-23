@@ -1,26 +1,22 @@
 package com.ruppyrup.lance.publisher;
 
-import com.ruppyrup.lance.models.DataMessage;
 import com.ruppyrup.lance.models.Message;
 import com.ruppyrup.lance.models.MessageUtils;
-import com.ruppyrup.lance.models.Topic;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.logging.Logger;
-import java.util.stream.IntStream;
 
 public class LancePublisher implements Publisher {
 
   private static final Logger LOGGER = Logger.getLogger(LancePublisher.class.getName());
   private static final int port = 4445;
-  private final DatagramSocket socket;
+  private DatagramSocket socket;
   private final InetAddress address;
 
   public LancePublisher() throws SocketException, UnknownHostException {
-    this.socket = new DatagramSocket();
     this.address = InetAddress.getLocalHost();
   }
 
@@ -29,6 +25,10 @@ public class LancePublisher implements Publisher {
     this.address = address;
   }
 
+  @Override
+  public void start() throws SocketException {
+    socket = new DatagramSocket();
+  }
   @Override
   public void publish(Message message) {
     try {
@@ -43,7 +43,8 @@ public class LancePublisher implements Publisher {
 
   @Override
   public void close() {
-    socket.close();
+    if (socket != null)
+      socket.close();
   }
 
 //  public static void main(String[] args) throws SocketException, UnknownHostException {

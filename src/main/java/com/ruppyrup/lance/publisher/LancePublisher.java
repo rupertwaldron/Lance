@@ -27,7 +27,9 @@ public class LancePublisher implements Publisher {
 
   @Override
   public void start() throws SocketException {
-    socket = new DatagramSocket();
+    if (socket == null) {
+      socket = new DatagramSocket();
+    }
   }
   @Override
   public void publish(Message message) {

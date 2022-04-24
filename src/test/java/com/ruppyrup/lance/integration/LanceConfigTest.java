@@ -48,11 +48,6 @@ class LanceConfigTest {
     publisher.start();
   }
 
-  @AfterEach
-  void close() {
-    subscriber.close();
-  }
-
   @AfterAll
   static void tearDown() {
     application.close();

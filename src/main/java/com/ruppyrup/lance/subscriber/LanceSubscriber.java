@@ -47,7 +47,9 @@ public class LanceSubscriber implements Subscriber {
 
   @Override
   public void start() throws SocketException {
-    socket = new DatagramSocket(receivePort);
+    if (socket == null) {
+      socket = new DatagramSocket(receivePort);
+    }
   }
 
   @Override

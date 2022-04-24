@@ -7,15 +7,13 @@ import com.ruppyrup.lance.subscriber.Subscriber;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-@ConditionalOnProperty("lance.subscriber.port")
 public class LanceConfig {
 
-  @Value("${lance.subscriber.port}")
+  @Value("${lance.subscriber.port:4547}")
   private int subscriberPort;
 
   @Bean(destroyMethod = "close")

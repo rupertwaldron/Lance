@@ -9,21 +9,20 @@ import java.net.UnknownHostException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Scope;
 
 @Configuration
 public class LanceConfig {
 
-  @Value("${lance.subscriber.port:4547}")
-  private int subscriberPort;
-
   @Bean(destroyMethod = "close")
+  @Scope("prototype")
   public Publisher publisher() throws SocketException, UnknownHostException {
     return new LancePublisher();
   }
 
   @Bean(destroyMethod = "close")
+  @Scope("prototype")
   public Subscriber subscriber() throws SocketException, UnknownHostException {
-    return new LanceSubscriber(subscriberPort);
+    return new LanceSubscriber();
   }
-
 }

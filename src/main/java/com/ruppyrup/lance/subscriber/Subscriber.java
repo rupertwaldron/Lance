@@ -20,4 +20,6 @@ public interface Subscriber extends Closeable {
 
   @Override
   void close();
+
+  int getReceivePort();
 }

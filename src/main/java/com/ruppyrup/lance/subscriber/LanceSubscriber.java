@@ -14,6 +14,7 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.UnknownHostException;
+import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
 import reactor.core.publisher.Flux;
@@ -25,7 +26,7 @@ public class LanceSubscriber implements Subscriber {
   private static final Logger LOGGER = Logger.getLogger(LanceSubscriber.class.getName());
   private static final ObjectMapper mapper = new ObjectMapper();
   private static final int lanceSubPort = 4446;
-  private final int receivePort;
+  private int receivePort;
   private DatagramSocket socket;
   private final InetAddress address;
   private boolean isRunning;
@@ -40,15 +41,27 @@ public class LanceSubscriber implements Subscriber {
 
   public LanceSubscriber(int receivePort) throws UnknownHostException {
     this.receivePort = receivePort;
-
     address = InetAddress.getLocalHost();
     this.isRunning = true;
   }
 
+  public LanceSubscriber() throws UnknownHostException {
+    this(getReceiveRandomPort());
+  }
+
+  private static int getReceiveRandomPort() {
+    return 4096 + new Random().nextInt(61439);
+  }
+
   @Override
-  public void start() throws SocketException {
-    if (socket == null) {
-      socket = new DatagramSocket(receivePort);
+  public void start() {
+    while (socket == null) {
+      try {
+        socket = new DatagramSocket(receivePort);
+      } catch (SocketException e) {
+        receivePort = getReceiveRandomPort();
+        LOGGER.info("Port throws error - trying another");
+      }
     }
   }
 
@@ -115,7 +128,11 @@ public class LanceSubscriber implements Subscriber {
       socket.close();
   }
 
-//  public static void main(String[] args) throws SocketException, UnknownHostException {
+  @Override
+  public int getReceivePort() {
+    return receivePort;
+  }
+  //  public static void main(String[] args) throws SocketException, UnknownHostException {
 //    LanceSubscriber subscriber = new LanceSubscriber(6161);
 //    Flux<Message> udpFlux = subscriber.createUdpFlux();
 //    subscriber.subscribe("rubsub", new Topic("monkey-topic"));

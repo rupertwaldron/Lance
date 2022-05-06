@@ -45,6 +45,7 @@ public class LancePublisher implements Publisher {
 
   @Override
   public void close() {
+    System.out.println(this.getClass().getSimpleName() + " closed");
     if (socket != null)
       socket.close();
   }

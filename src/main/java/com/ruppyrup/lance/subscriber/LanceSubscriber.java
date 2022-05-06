@@ -123,6 +123,7 @@ public class LanceSubscriber implements Subscriber {
 
   @Override
   public void close() {
+    System.out.println(this.getClass().getSimpleName() + " closed");
     isRunning = false;
     if (socket != null)
       socket.close();

@@ -48,7 +48,7 @@ public class LanceApplication implements Closeable {
 
     LanceApplication app = new LanceApplication();
     app.start();
-    Thread.sleep(990000);
+    Thread.sleep(360000);
     app.close();
 
   }

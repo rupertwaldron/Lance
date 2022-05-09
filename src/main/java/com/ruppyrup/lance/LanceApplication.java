@@ -51,8 +51,7 @@ public class LanceApplication implements Closeable {
         }, executorService);
   }
 
-  public static void main(String[] args)
-      throws ExecutionException, InterruptedException, TimeoutException {
+  public static void main(String[] args) {
     Scanner scanner = new Scanner(System.in);
     LanceApplication app = new LanceApplication();
 
@@ -70,10 +69,12 @@ public class LanceApplication implements Closeable {
       String input = scanner.next();
       if (input.equals("q")) {
         break;
+      } else if (input.equals("list")) {
+        LanceBroker.getInstance().listTopics();
       }
     }
 
-    mainappcf.get(1, TimeUnit.SECONDS);
+    mainappcf.join();
     app.close();
 
   }
@@ -82,12 +83,8 @@ public class LanceApplication implements Closeable {
   public void close() {
     System.out.println("Closing Lance");
     LanceBroker.getInstance().close();
-    try {
-      subscriberFuture.get(1, TimeUnit.SECONDS);
-      receiverFuture.get(1, TimeUnit.SECONDS);
-    } catch (InterruptedException | ExecutionException | TimeoutException e) {
-      System.out.println("Failure during close" + e.getMessage());
-    }
+    subscriberFuture.join();
+    receiverFuture.join();
     executorService.shutdownNow();
     service.shutdownNow();
   }

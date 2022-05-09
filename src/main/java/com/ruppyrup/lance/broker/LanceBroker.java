@@ -8,7 +8,6 @@ import com.ruppyrup.lance.subscribers.LanceSubscriberInfo;
 import com.ruppyrup.lance.subscribers.SubscriberInfo;
 import com.ruppyrup.lance.transceivers.Transceiver;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -100,9 +99,12 @@ public class LanceBroker implements Broker {
     }
 
     if (subscribers.containsKey(topic)) {
-      if (alreadyRegisteredThenDeRegister(topic, subscriberInfo)) {
-        return;
-      }
+      List<SubscriberInfo> prevRegisterSubscribersWithSameName = subscribers.get(topic).stream()
+          .filter(sub -> sub.getSubscriberName().equals(subscriberInfo.getSubscriberName()))
+          .toList();
+
+      prevRegisterSubscribersWithSameName.forEach(removeSub -> subscribers.get(topic).remove(removeSub));
+
       subscribers.get(topic).add(subscriberInfo);
     } else {
       List<SubscriberInfo> subscribeList = new ArrayList<>();
@@ -150,5 +152,12 @@ public class LanceBroker implements Broker {
   @Override
   public List<SubscriberInfo> getSubscribersByTopic(Topic topic) {
     return subscribers.get(topic);
+  }
+
+  public void listTopics() {
+    subscribers.forEach((key, value) -> {
+      System.out.println(key);
+      value.forEach(System.out::println);
+    });
   }
 }

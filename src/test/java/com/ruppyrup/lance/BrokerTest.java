@@ -215,16 +215,17 @@ class BrokerTest {
     }
 
     @Test
-    void testSubscribeTwiceToDegregisterSubscriber() {
+    void testSubscribeTwiceToRegisterTheMostRecentSubscriber() {
       SubscriberInfo subscribe1 = new LanceSubscriberInfo("sub1", 1001);
-      SubscriberInfo subscribe2 = new LanceSubscriberInfo("sub1", 1001);
+      SubscriberInfo subscribe2 = new LanceSubscriberInfo("sub1", 1002);
       Message subMessage1 = new DataMessage(topic1, subscribe1.toJsonString());
       Message subMessage2 = new DataMessage(topic1, subscribe2.toJsonString());
       subTransceiver.setMessage(subMessage1);
       subTransceiver.setMessage(subMessage2);
       lanceBroker.register();
       lanceBroker.register();
-      Assertions.assertTrue(lanceBroker.getSubscribersByTopic(topic1).isEmpty());
+      SubscriberInfo[] subArray = {subscribe2};
+      Assertions.assertArrayEquals(subArray, lanceBroker.getSubscribersByTopic(topic1).toArray(SubscriberInfo[]::new));
     }
   }
 }

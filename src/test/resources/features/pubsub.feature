@@ -18,18 +18,19 @@ Feature: Publish and Subscribe Feature
   | topicName | subscriberName | message      |
   | topic1    | subName1       | test message |
 
-  Scenario: Subscriber unsubscribes and receives no messages
+  Scenario: Lance takes the latest subscriber by name not port
     Given Lance Broker can receive 1 message
     And Lance Broker is receiving 2 subscriptions
     And Lance Broker is sending every 3 milliseconds intervals
     And a subscriber is created with listening port 3333 with name "<subscriberName>"
+    And a subscriber is created with listening port 3334 with name "<subscriberName>"
     When a subscriber registers for the topic "<topicName>" with subscriber name "<subscriberName>"
     And a subscriber registers for the topic "<topicName>" with subscriber name "<subscriberName>"
-    Then 0 subscribers will be found for topic "<topicName>"
+    Then 1 subscribers will be found for topic "<topicName>"
 
   Example: Subscribe and unsubscribe from one topic
   | topicName | subscriberName |
-  | topic1    | subName1       |
+  | topic1    | subName        |
 
   Scenario: Multiple subscribers receive their respective messages
     Given Lance Broker can receive 2 messages

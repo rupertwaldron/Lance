@@ -1,14 +1,16 @@
 package com.ruppyrup.lance.cucumber.stepDefs;
 
+import static com.ruppyrup.lance.utils.LanceLogger.LOGGER;
+
 import com.ruppyrup.lance.broker.LanceBroker;
-import com.ruppyrup.lance.publisher.LancePublisher;
-import com.ruppyrup.lance.subscriber.LanceSubscriber;
 import com.ruppyrup.lance.models.DataMessage;
 import com.ruppyrup.lance.models.Message;
 import com.ruppyrup.lance.models.Topic;
+import com.ruppyrup.lance.publisher.LancePublisher;
+import com.ruppyrup.lance.subscriber.LanceSubscriber;
 import com.ruppyrup.lance.subscribers.SubscriberInfo;
-import com.ruppyrup.lance.transceivers.Transceiver;
 import com.ruppyrup.lance.transceivers.MsgTransceiver;
+import com.ruppyrup.lance.transceivers.Transceiver;
 import io.cucumber.java.After;
 import io.cucumber.java.Before;
 import io.cucumber.java.en.And;
@@ -29,12 +31,14 @@ import org.junit.jupiter.api.Assertions;
 
 public class Stepdefs {
 
-  @Before
+  @Before("@Standard")
   public void setup() {
-
+    ScheduledExecutorService service = Executors.newSingleThreadScheduledExecutor();
+    service.scheduleAtFixedRate(() -> LanceBroker.getInstance().send(), 5, 5, TimeUnit.MILLISECONDS);
+    TestData.setData("schedulerService", service);
   }
 
-  @After
+  @After("@Standard")
   public void teardown() {
     LanceBroker.getInstance().close();
     TestData.getData("schedulerService", ScheduledExecutorService.class).shutdownNow();
@@ -133,16 +137,18 @@ public class Stepdefs {
   public void theSubscriberReceivesTheMessage(String subscriberName, String messageData, int messageCount) {
     LanceSubscriber lanceSubscriber = TestData.getData(subscriberName, LanceSubscriber.class);
     DataMessage expectedMessage = TestData.getData(messageData, DataMessage.class);
+    long start = 0;
     for (int i = 0; i < messageCount; i++) {
       Message receivedMessage = lanceSubscriber.receive();
+      if (i == 0) {
+        start = System.currentTimeMillis();
+        LOGGER.info("Start subscriber timer");
+      }
       Assertions.assertEquals(expectedMessage, receivedMessage);
     }
-  }
-
-  @And("Lance Broker is sending every {int} milliseconds intervals")
-  public void lanceBrokerIsSendingEveryMillisecondsIntervals(int interval) {
-    ScheduledExecutorService service = Executors.newSingleThreadScheduledExecutor();
-    service.scheduleAtFixedRate(() -> LanceBroker.getInstance().send(), 5, interval, TimeUnit.MILLISECONDS);
-    TestData.setData("schedulerService", service);
+    long elapsed = System.currentTimeMillis() - start;
+    LOGGER.info("Finish subscriber timer");
+    System.out.println("Time to receive messages = " + elapsed + "[msec]");
+    Assertions.assertTrue(elapsed <= TimeUnit.NANOSECONDS.toNanos(100));
   }
 }

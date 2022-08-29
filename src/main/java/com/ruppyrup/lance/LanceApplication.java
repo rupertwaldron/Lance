@@ -2,20 +2,18 @@ package com.ruppyrup.lance;
 
 import com.ruppyrup.lance.broker.Broker;
 import com.ruppyrup.lance.broker.LanceBroker;
-import com.ruppyrup.lance.transceivers.Transceiver;
 import com.ruppyrup.lance.transceivers.MsgTransceiver;
+import com.ruppyrup.lance.transceivers.Transceiver;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.Scanner;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 public class LanceApplication implements Closeable {
 

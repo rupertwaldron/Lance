@@ -1,5 +1,7 @@
 package com.ruppyrup.lance.publisher;
 
+import static com.ruppyrup.lance.utils.LanceLogger.LOGGER;
+
 import com.ruppyrup.lance.models.Message;
 import com.ruppyrup.lance.models.MessageUtils;
 import java.net.DatagramPacket;
@@ -11,7 +13,7 @@ import java.util.logging.Logger;
 
 public class LancePublisher implements Publisher {
 
-  private static final Logger LOGGER = Logger.getLogger(LancePublisher.class.getName());
+//  private static final Logger LOGGER = Logger.getLogger(LancePublisher.class.getName());
   private static final int port = 4445;
   private DatagramSocket socket;
   private final InetAddress address;

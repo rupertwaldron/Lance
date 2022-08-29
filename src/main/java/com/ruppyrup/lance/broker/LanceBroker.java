@@ -1,5 +1,7 @@
 package com.ruppyrup.lance.broker;
 
+import static com.ruppyrup.lance.utils.LanceLogger.LOGGER;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ruppyrup.lance.models.Message;
@@ -20,7 +22,7 @@ public class LanceBroker implements Broker {
 
   // todo need a de-register method
 
-  private static final Logger LOGGER = Logger.getLogger(LanceBroker.class.getName());
+//  private static final Logger LOGGER = Logger.getLogger(LanceBroker.class.getName());
   private static final ObjectMapper mapper = new ObjectMapper();
   private static LanceBroker lanceBrokerInstance;
   private Transceiver msgTransceiver;

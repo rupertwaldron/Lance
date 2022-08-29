@@ -1,6 +1,7 @@
 package com.ruppyrup.lance.subscriber;
 
 import static com.ruppyrup.lance.models.MessageUtils.getMessageBytes;
+import static com.ruppyrup.lance.utils.LanceLogger.LOGGER;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ruppyrup.lance.models.DataMessage;
@@ -23,7 +24,7 @@ import reactor.core.publisher.FluxSink.OverflowStrategy;
 import reactor.core.scheduler.Schedulers;
 
 public class LanceSubscriber implements Subscriber {
-  private static final Logger LOGGER = Logger.getLogger(LanceSubscriber.class.getName());
+//  private static final Logger LOGGER = Logger.getLogger(LanceSubscriber.class.getName());
   private static final ObjectMapper mapper = new ObjectMapper();
   private static final int lanceSubPort = 4446;
   private int receivePort;
@@ -94,7 +95,7 @@ public class LanceSubscriber implements Subscriber {
       byte[] receivedBytes = new byte[packet.getLength()];
       System.arraycopy(packet.getData(), 0, receivedBytes, 0, packet.getLength());
       receivedMessage = mapper.readValue(receivedBytes, DataMessage.class);
-      LOGGER.info("Lance Subscribe received -> %s" + receivedMessage);
+      LOGGER.info("Lance Subscribe received -> " + receivedMessage);
     } catch (IOException e) {
       LOGGER.warning("Error receiving datagram :: " + e.getMessage());
     }

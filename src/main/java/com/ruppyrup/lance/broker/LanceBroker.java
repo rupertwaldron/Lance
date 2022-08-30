@@ -75,7 +75,6 @@ public class LanceBroker implements Broker {
         LOGGER.info("Sending message to following subscribers :: " + subList);
         msgTransceiver.send(message, subList);
         entry.getValue().poll();
-
       }
     }
   }

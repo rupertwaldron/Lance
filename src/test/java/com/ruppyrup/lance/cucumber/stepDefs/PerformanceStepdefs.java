@@ -29,7 +29,7 @@ public class PerformanceStepdefs {
     CompletableFuture<Void> lanceBrokerFuture = TestData.getData("lanceBrokerFuture",
         CompletableFuture.class);
     try {
-      lanceBrokerFuture.get(10, TimeUnit.SECONDS);
+      lanceBrokerFuture.get(2, TimeUnit.SECONDS);
     } catch (Exception e) {
       System.out.println("Lance Broker stopped");
     }
@@ -64,6 +64,7 @@ public class PerformanceStepdefs {
                     var publisher = new LancePublisher();
                     publisher.start();
                     for (int i = 0; i < messageCount; i++) {
+                      Thread.sleep(10);
                       publisher.publish(message);
                     }
                   } catch (Exception e) {

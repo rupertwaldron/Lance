@@ -9,20 +9,21 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.UnknownHostException;
-import java.util.logging.Logger;
 
 public class LancePublisher implements Publisher {
 
 //  private static final Logger LOGGER = Logger.getLogger(LancePublisher.class.getName());
-  private static final int port = 4445;
+  private final int port;
   private DatagramSocket socket;
   private final InetAddress address;
 
-  public LancePublisher() throws SocketException, UnknownHostException {
+  public LancePublisher(int port) throws SocketException, UnknownHostException {
+    this.port = port;
     this.address = InetAddress.getLocalHost();
   }
 
-  public LancePublisher(DatagramSocket socket, InetAddress address) {
+  public LancePublisher(int port, DatagramSocket socket, InetAddress address) {
+    this.port = port;
     this.socket = socket;
     this.address = address;
   }

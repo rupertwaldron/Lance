@@ -21,7 +21,7 @@ class LancePublisherTest {
   void checkSocketAndAddressAreInjected() throws IOException {
     MockSocket socket = new MockSocket();
     InetAddress address = InetAddress.getLoopbackAddress();
-    LancePublisher publisher = new LancePublisher(socket, address);
+    LancePublisher publisher = new LancePublisher(6666, socket, address);
     Topic topic = new Topic("test1");
     Message message = new DataMessage(topic, "test1");
     byte[] dataToSend = MessageUtils.getMessageBytes(message);

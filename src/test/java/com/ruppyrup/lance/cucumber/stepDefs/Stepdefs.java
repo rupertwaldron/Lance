@@ -46,6 +46,19 @@ public class Stepdefs {
     TestData.clear();
   }
 
+  @Given("Lance Broker has a subscriber port of {int} and a message port of {int}")
+  public void lanceBrokerHasASubscriberPortOfAndAMessagePortOf(int subPort, int messagePort)
+      throws SocketException, UnknownHostException {
+    Transceiver subTransceiver = new MsgTransceiver(new DatagramSocket(subPort),
+        InetAddress.getLocalHost(), subPort);
+    LanceBroker.getInstance().setSubTransceiver(subTransceiver);
+    TestData.setData("subPort", subPort);
+    Transceiver msgTransceiver = new MsgTransceiver(new DatagramSocket(messagePort),
+        InetAddress.getLocalHost(), messagePort);
+    LanceBroker.getInstance().setMsgTransceiver(msgTransceiver);
+    TestData.setData("msgPort", messagePort);
+  }
+
   @Given("Lance Broker is receiving {int} subscriptions")
   public void lanceBrokerIsReceivingUdpData(int subCount) {
     CompletableFuture<Void> subscriberFuture = CompletableFuture.runAsync(
@@ -79,7 +92,8 @@ public class Stepdefs {
   public void aPublisherSendsTheMessageToLanceBroker(String messageData, int publishCount)
       throws SocketException, UnknownHostException {
     Message message = TestData.getData(messageData, Message.class);
-    var publisher = new LancePublisher();
+    int messagePort = TestData.getData("msgPort", Integer.class);
+    var publisher = new LancePublisher(messagePort);
     publisher.start();
     for (int i = 0; i < publishCount; i++) {
       publisher.publish(message);
@@ -154,18 +168,5 @@ public class Stepdefs {
     LOGGER.info("Finish subscriber timer");
     System.out.println("Time to receive messages = " + elapsed + "[msec]");
     Assertions.assertTrue(elapsed <= TimeUnit.NANOSECONDS.toNanos(400));
-  }
-
-  @Given("Lance Broker has a subscriber port of {int} and a message port of {int}")
-  public void lanceBrokerHasASubscriberPortOfAndAMessagePortOf(int subPort, int messagePort)
-      throws SocketException, UnknownHostException {
-    Transceiver subTransceiver = new MsgTransceiver(new DatagramSocket(subPort),
-        InetAddress.getLocalHost(), subPort);
-    LanceBroker.getInstance().setSubTransceiver(subTransceiver);
-    TestData.setData("subPort", subPort);
-    Transceiver msgTransceiver = new MsgTransceiver(new DatagramSocket(messagePort),
-        InetAddress.getLocalHost(), messagePort);
-    LanceBroker.getInstance().setMsgTransceiver(msgTransceiver);
-    TestData.setData("msgPort", messagePort);
   }
 }

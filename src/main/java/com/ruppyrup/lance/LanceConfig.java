@@ -15,7 +15,7 @@ public class LanceConfig {
   @Bean(destroyMethod = "close")
 //  @Scope("prototype")
   public Publisher publisher() throws SocketException, UnknownHostException {
-    LancePublisher lancePublisher = new LancePublisher();
+    LancePublisher lancePublisher = new LancePublisher(4445);
     lancePublisher.start();
     return lancePublisher;
   }

@@ -3,10 +3,13 @@ package com.ruppyrup.lance.cucumber.stepDefs;
 import com.ruppyrup.lance.LanceApplication;
 import com.ruppyrup.lance.models.Message;
 import com.ruppyrup.lance.publisher.LancePublisher;
+import com.ruppyrup.lance.subscriber.LanceSubscriber;
 import io.cucumber.java.After;
 import io.cucumber.java.Before;
+import io.cucumber.java.en.And;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.When;
+import java.net.UnknownHostException;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
@@ -43,6 +46,16 @@ public class PerformanceStepdefs {
 
   }
 
+  @And("a subscriber is created with listening port {int} with name {string} on subPort {int}")
+  public void aSubscriberIsCreatedWithListeningPort(int port, String subscriberName, int subPort)
+      throws UnknownHostException {
+//    int subPort = TestData.getData("subPort", Integer.class);
+    LanceSubscriber lanceSubscriber = new LanceSubscriber(port, subPort);
+    lanceSubscriber.start();
+    TestData.setData(subscriberName, lanceSubscriber);
+    TestData.setData(subscriberName + "Port", port);
+  }
+
   @When("{int} publishers send the message {string} to Lance Broker {int} time(s)")
   public void aPublisherSendsTheMessageToLanceBroker(int publisherCount, String messageData, int messageCount)
       throws InterruptedException {
@@ -61,7 +74,7 @@ public class PerformanceStepdefs {
                     readyThreadCounter.countDown();
                     callingThreadBlocker.await();
                     System.out.println("Started ... " + Thread.currentThread().getName());
-                    var publisher = new LancePublisher();
+                    var publisher = new LancePublisher(4445);
                     publisher.start();
                     for (int i = 0; i < messageCount; i++) {
                       Thread.sleep(10);

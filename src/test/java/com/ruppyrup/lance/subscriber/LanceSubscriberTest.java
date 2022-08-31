@@ -38,7 +38,7 @@ class LanceSubscriberTest {
       socket = new MockSocket();
       address = InetAddress.getLoopbackAddress();
       receivePort = 4422;
-      subscriber = new LanceSubscriber(receivePort, socket, address);
+      subscriber = new LanceSubscriber(receivePort, socket, address, 4446);
     }
 
     @AfterEach

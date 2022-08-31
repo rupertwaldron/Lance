@@ -34,7 +34,8 @@ public class Stepdefs {
   @Before("@Standard")
   public void setup() {
     ScheduledExecutorService service = Executors.newSingleThreadScheduledExecutor();
-    service.scheduleAtFixedRate(() -> LanceBroker.getInstance().send(), 5, 5, TimeUnit.MILLISECONDS);
+    service.scheduleAtFixedRate(() -> LanceBroker.getInstance().send(), 5, 5,
+        TimeUnit.MILLISECONDS);
     TestData.setData("schedulerService", service);
   }
 
@@ -46,27 +47,23 @@ public class Stepdefs {
   }
 
   @Given("Lance Broker is receiving {int} subscriptions")
-  public void lanceBrokerIsReceivingUdpData(int subCount) throws SocketException, UnknownHostException {
-    Transceiver subTransceiver = new MsgTransceiver(new DatagramSocket(4446),
-        InetAddress.getLocalHost(), 4446);
-    LanceBroker.getInstance().setSubTransceiver(subTransceiver);
+  public void lanceBrokerIsReceivingUdpData(int subCount) {
     CompletableFuture<Void> subscriberFuture = CompletableFuture.runAsync(
         () -> {
-          for (int i = 0; i < subCount; i++)
+          for (int i = 0; i < subCount; i++) {
             LanceBroker.getInstance().register();
+          }
         });
     TestData.setData("subscriberFuture", subscriberFuture);
   }
 
   @Given("Lance Broker can receive {int} message(s)")
-  public void lanceBrokerIsReceivingMessageData(int messageCount) throws SocketException, UnknownHostException {
-    Transceiver msgTransceiver = new MsgTransceiver(new DatagramSocket(4445),
-        InetAddress.getLocalHost(), 4445);
-    LanceBroker.getInstance().setMsgTransceiver(msgTransceiver);
+  public void lanceBrokerIsReceivingMessageData(int messageCount) {
     CompletableFuture<Void> receiverFuture = CompletableFuture.runAsync(
         () -> {
-          for (int i = 0; i < messageCount; i++)
+          for (int i = 0; i < messageCount; i++) {
             LanceBroker.getInstance().receive();
+          }
         });
     TestData.setData("receiverFuture", receiverFuture);
   }
@@ -79,7 +76,8 @@ public class Stepdefs {
   }
 
   @When("a publisher sends the message {string} to Lance Broker {int} time(s)")
-  public void aPublisherSendsTheMessageToLanceBroker(String messageData, int publishCount) throws SocketException, UnknownHostException {
+  public void aPublisherSendsTheMessageToLanceBroker(String messageData, int publishCount)
+      throws SocketException, UnknownHostException {
     Message message = TestData.getData(messageData, Message.class);
     var publisher = new LancePublisher();
     publisher.start();
@@ -113,12 +111,13 @@ public class Stepdefs {
     CompletableFuture<Void> subscriberFuture = TestData.getData("subscriberFuture",
         CompletableFuture.class);
     subscriberFuture.join();
-    List<SubscriberInfo> subscribersByTopic = LanceBroker.getInstance().getSubscribersByTopic(topic);
+    List<SubscriberInfo> subscribersByTopic = LanceBroker.getInstance()
+        .getSubscribersByTopic(topic);
     Assertions.assertEquals(subscriberCount, subscribersByTopic.size());
   }
 
-  @Given("Lance Subscriber is receiving data on port {int}")
-  public void lanceSubscribeIsReceivingUdpData(int port) {
+  @Given("Lance Subscriber is receiving data")
+  public void lanceSubscribeIsReceivingUdpData() {
     CompletableFuture<Void> subscriberFuture = CompletableFuture.runAsync(
         () -> LanceBroker.getInstance().register());
     TestData.setData("subscriberFuture", subscriberFuture);
@@ -126,15 +125,17 @@ public class Stepdefs {
 
   @And("a subscriber is created with listening port {int} with name {string}")
   public void aSubscriberIsCreatedWithListeningPort(int port, String subscriberName)
-      throws SocketException, UnknownHostException {
-    LanceSubscriber lanceSubscriber = new LanceSubscriber(port);
+      throws UnknownHostException {
+    int subPort = TestData.getData("subPort", Integer.class);
+    LanceSubscriber lanceSubscriber = new LanceSubscriber(port, subPort);
     lanceSubscriber.start();
     TestData.setData(subscriberName, lanceSubscriber);
     TestData.setData(subscriberName + "Port", port);
   }
 
   @Then("the subscriber with name {string} receives the message {string} {int} time(s)")
-  public void theSubscriberReceivesTheMessage(String subscriberName, String messageData, int messageCount) {
+  public void theSubscriberReceivesTheMessage(String subscriberName, String messageData,
+      int messageCount) {
     LanceSubscriber lanceSubscriber = TestData.getData(subscriberName, LanceSubscriber.class);
     DataMessage expectedMessage = TestData.getData(messageData, DataMessage.class);
     int count = 0;
@@ -153,5 +154,18 @@ public class Stepdefs {
     LOGGER.info("Finish subscriber timer");
     System.out.println("Time to receive messages = " + elapsed + "[msec]");
     Assertions.assertTrue(elapsed <= TimeUnit.NANOSECONDS.toNanos(400));
+  }
+
+  @Given("Lance Broker has a subscriber port of {int} and a message port of {int}")
+  public void lanceBrokerHasASubscriberPortOfAndAMessagePortOf(int subPort, int messagePort)
+      throws SocketException, UnknownHostException {
+    Transceiver subTransceiver = new MsgTransceiver(new DatagramSocket(subPort),
+        InetAddress.getLocalHost(), subPort);
+    LanceBroker.getInstance().setSubTransceiver(subTransceiver);
+    TestData.setData("subPort", subPort);
+    Transceiver msgTransceiver = new MsgTransceiver(new DatagramSocket(messagePort),
+        InetAddress.getLocalHost(), messagePort);
+    LanceBroker.getInstance().setMsgTransceiver(msgTransceiver);
+    TestData.setData("msgPort", messagePort);
   }
 }

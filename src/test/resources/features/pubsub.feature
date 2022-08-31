@@ -4,7 +4,8 @@ Feature: Publish and Subscribe Feature
   another class can receive the data for that topic
 
   Scenario: Subscriber receives message
-    Given Lance Broker can receive 1 message
+    Given Lance Broker has a subscriber port of 5556 and a message port of 4445
+    And Lance Broker can receive 1 message
     And Lance Broker is receiving 1 subscriptions
     And a subscriber is created with listening port 3333 with name "subscriberName"
     When a subscriber registers for the topic "topicName" with subscriber name "subscriberName"
@@ -18,7 +19,8 @@ Feature: Publish and Subscribe Feature
   | topic1    | subName1       | test message |
 
   Scenario: Lance takes the latest subscriber by name not port
-    Given Lance Broker can receive 1 message
+    Given Lance Broker has a subscriber port of 5556 and a message port of 4445
+    And Lance Broker can receive 1 message
     And Lance Broker is receiving 2 subscriptions
     And a subscriber is created with listening port 3333 with name "subscriberName"
     And a subscriber is created with listening port 3334 with name "subscriberName"
@@ -31,7 +33,8 @@ Feature: Publish and Subscribe Feature
   | topic1    | subName        |
 
   Scenario: Multiple subscribers receive their respective messages
-    Given Lance Broker can receive 2 messages
+    Given Lance Broker has a subscriber port of 5556 and a message port of 4445
+    And Lance Broker can receive 2 messages
     And Lance Broker is receiving 2 subscriptions
     And a subscriber is created with listening port 3333 with name "subscriberName1"
     And a subscriber registers for the topic "topicName1" with subscriber name "subscriberName1"
@@ -51,7 +54,8 @@ Feature: Publish and Subscribe Feature
   | topic1     | subName1        | test1 message1 | topic2     | subName2        | test2 message2 |
 
   Scenario A subscriber can receive multiple messages
-    Given Lance Broker can receive 10 messages
+    Given Lance Broker has a subscriber port of 5556 and a message port of 4445
+    And Lance Broker can receive 10 messages
     And Lance Broker is receiving 1 subscriptions
     And a subscriber is created with listening port 3333 with name "subscriberName"
     When a subscriber registers for the topic "topicName" with subscriber name "subscriberName"
@@ -65,7 +69,8 @@ Feature: Publish and Subscribe Feature
   | topic1    | subName1       | test message |
 
   Scenario: Multiple subscribers receive same messages when subscribe to same topic
-    Given Lance Broker can receive 10 messages
+    Given Lance Broker has a subscriber port of 5556 and a message port of 4445
+    And Lance Broker can receive 10 messages
     And Lance Broker is receiving 2 subscriptions
     And a subscriber is created with listening port 3333 with name "subscriberName1"
     And a subscriber registers for the topic "topicName1" with subscriber name "subscriberName1"

@@ -17,7 +17,6 @@ import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.logging.Logger;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.FluxSink;
 import reactor.core.publisher.FluxSink.OverflowStrategy;
@@ -26,28 +25,30 @@ import reactor.core.scheduler.Schedulers;
 public class LanceSubscriber implements Subscriber {
 //  private static final Logger LOGGER = Logger.getLogger(LanceSubscriber.class.getName());
   private static final ObjectMapper mapper = new ObjectMapper();
-  private static final int lanceSubPort = 4446;
+  private final int lanceSubPort;
   private int receivePort;
   private DatagramSocket socket;
   private final InetAddress address;
   private boolean isRunning;
   public AtomicInteger counter = new AtomicInteger(0);
 
-  public LanceSubscriber(int receivePort, DatagramSocket socket, InetAddress address) {
+  public LanceSubscriber(int receivePort, DatagramSocket socket, InetAddress address, int lanceSubPort) {
     this.receivePort = receivePort;
     this.socket = socket;
     this.address = address;
+    this.lanceSubPort = lanceSubPort;
     this.isRunning = true;
   }
 
-  public LanceSubscriber(int receivePort) throws UnknownHostException {
+  public LanceSubscriber(int receivePort, int lanceSubPort) throws UnknownHostException {
     this.receivePort = receivePort;
     address = InetAddress.getLocalHost();
+    this.lanceSubPort = lanceSubPort;
     this.isRunning = true;
   }
 
-  public LanceSubscriber() throws UnknownHostException {
-    this(getReceiveRandomPort());
+  public LanceSubscriber(int lanceSubPort) throws UnknownHostException {
+    this(getReceiveRandomPort(), lanceSubPort);
   }
 
   private static int getReceiveRandomPort() {

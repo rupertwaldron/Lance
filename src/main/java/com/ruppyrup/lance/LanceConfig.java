@@ -23,7 +23,7 @@ public class LanceConfig {
   @Bean(destroyMethod = "close")
 //  @Scope("prototype")
   public Subscriber subscriber() throws SocketException, UnknownHostException {
-    LanceSubscriber lanceSubscriber = new LanceSubscriber();
+    LanceSubscriber lanceSubscriber = new LanceSubscriber(4446);
     lanceSubscriber.start();
     return lanceSubscriber;
   }

@@ -34,11 +34,9 @@ public class LanceApplication implements Closeable {
     LanceBroker.getInstance().setSubTransceiver(subTransceiver);
 
     service = Executors.newSingleThreadScheduledExecutor();
-//    Executors.newScheduledThreadPool()
 
     service.scheduleAtFixedRate(() -> {
           LanceBroker.getInstance().send();
-          LOGGER.info("Scheduler firing up");
         }, 0, 1000, TimeUnit.MILLISECONDS);
 
     subscriberFuture = CompletableFuture.runAsync(

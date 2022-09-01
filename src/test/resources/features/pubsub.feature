@@ -12,7 +12,7 @@ Feature: Publish and Subscribe Feature
     And 1 subscriber will be found for topic "topicName"
     And a udp message is created with data "message" and topic "topicName"
     And a publisher sends the message "message" to Lance Broker 1 time
-    Then the subscriber with name "subscriberName" receives the message "message" 1 time
+    Then the subscriber with name "subscriberName" receives the message "message" 1 time in 4000 mSeconds
 
   Example: One subscriber one message
   | topicName | subscriberName | message      |
@@ -46,8 +46,8 @@ Feature: Publish and Subscribe Feature
     And 1 subscriber will be found for topic "topicName2"
     When a publisher sends the message "message1" to Lance Broker 1 time
     And a publisher sends the message "message2" to Lance Broker 1 time
-    Then the subscriber with name "subscriberName1" receives the message "message1" 1 time
-    And the subscriber with name "subscriberName2" receives the message "message2" 1 time
+    Then the subscriber with name "subscriberName1" receives the message "message1" 1 time in 4000 mSeconds
+    And the subscriber with name "subscriberName2" receives the message "message2" 1 time in 4000 mSeconds
 
   Example: Two subscribers receive their respective messages
   | topicName1 | subscriberName1 | message1       | topicName2 | subscriberName2 | message2       |
@@ -62,7 +62,7 @@ Feature: Publish and Subscribe Feature
     And 1 subscriber will be found for topic "topicName"
     And a udp message is created with data "message" and topic "topicName"
     And a publisher sends the message "message" to Lance Broker 10 times
-    Then the subscriber with name "subscriberName" receives the message "message" 10 times
+    Then the subscriber with name "subscriberName" receives the message "message" 10 times in 4000 mSeconds
 
   Example: One subscriber receives multiple messages
   | topicName | subscriberName | message      |
@@ -79,8 +79,8 @@ Feature: Publish and Subscribe Feature
     And a udp message is created with data "message1" and topic "topicName1"
     And 2 subscribers will be found for topic "topicName1"
     When a publisher sends the message "message1" to Lance Broker 10 time
-    Then the subscriber with name "subscriberName1" receives the message "message1" 10 times
-    And the subscriber with name "subscriberName2" receives the message "message1" 10 time
+    Then the subscriber with name "subscriberName1" receives the message "message1" 10 times in 4000 mSeconds
+    And the subscriber with name "subscriberName2" receives the message "message1" 10 time in 4000 mSeconds
 
   Example: Two subscribers receive their respective messages
   | topicName1 | subscriberName1 | message1       |

@@ -147,9 +147,9 @@ public class Stepdefs {
     TestData.setData(subscriberName + "Port", port);
   }
 
-  @Then("the subscriber with name {string} receives the message {string} {int} time(s)")
+  @Then("the subscriber with name {string} receives the message {string} {int} time(s) in {int} mSeconds")
   public void theSubscriberReceivesTheMessage(String subscriberName, String messageData,
-      int messageCount) {
+      int messageCount, int duration) {
     LanceSubscriber lanceSubscriber = TestData.getData(subscriberName, LanceSubscriber.class);
     DataMessage expectedMessage = TestData.getData(messageData, DataMessage.class);
     int count = 0;
@@ -167,6 +167,6 @@ public class Stepdefs {
     long elapsed = System.currentTimeMillis() - start;
     LOGGER.info("Finish subscriber timer");
     System.out.println("Time to receive messages = " + elapsed + "[msec]");
-    Assertions.assertTrue(elapsed <= TimeUnit.NANOSECONDS.toNanos(400));
+    Assertions.assertTrue(elapsed <= TimeUnit.NANOSECONDS.toNanos(duration));
   }
 }

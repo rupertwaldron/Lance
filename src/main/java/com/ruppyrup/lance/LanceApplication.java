@@ -1,7 +1,5 @@
 package com.ruppyrup.lance;
 
-import static com.ruppyrup.lance.utils.LanceLogger.LOGGER;
-
 import com.ruppyrup.lance.broker.Broker;
 import com.ruppyrup.lance.broker.LanceBroker;
 import com.ruppyrup.lance.transceivers.MsgTransceiver;

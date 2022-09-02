@@ -15,7 +15,14 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.UnknownHostException;
+import java.util.Deque;
+import java.util.LinkedList;
+import java.util.Queue;
 import java.util.Random;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.FluxSink;
@@ -23,16 +30,22 @@ import reactor.core.publisher.FluxSink.OverflowStrategy;
 import reactor.core.scheduler.Schedulers;
 
 public class LanceSubscriber implements Subscriber {
-//  private static final Logger LOGGER = Logger.getLogger(LanceSubscriber.class.getName());
+
+  //  private static final Logger LOGGER = Logger.getLogger(LanceSubscriber.class.getName());
   private static final ObjectMapper mapper = new ObjectMapper();
   private final int lanceSubPort;
   private int receivePort;
   private DatagramSocket socket;
   private final InetAddress address;
-  private boolean isRunning;
+  private volatile boolean isRunning;
   public AtomicInteger counter = new AtomicInteger(0);
+  private final Queue<DatagramPacket> packets = new LinkedList<>();
 
-  public LanceSubscriber(int receivePort, DatagramSocket socket, InetAddress address, int lanceSubPort) {
+  private volatile int count = 1;
+  private CompletableFuture<Void> receivePacketFuture;
+
+  public LanceSubscriber(int receivePort, DatagramSocket socket, InetAddress address,
+      int lanceSubPort) {
     this.receivePort = receivePort;
     this.socket = socket;
     this.address = address;
@@ -65,6 +78,22 @@ public class LanceSubscriber implements Subscriber {
         LOGGER.info("Port throws error - trying another");
       }
     }
+
+    receivePacketFuture = CompletableFuture.runAsync(this::receivePacket);
+  }
+
+  private void receivePacket() {
+    while (isRunning) {
+      byte[] buffer = new byte[1024];
+      try {
+        DatagramPacket packet = new DatagramPacket(buffer, buffer.length, address, receivePort);
+        socket.receive(packet);
+        packets.offer(packet);
+//        LOGGER.info(count++ + " Lance Subscribe received and added to queue -> " + packet);
+      } catch (IOException e) {
+        LOGGER.warning("Error receiving datagram :: " + e.getMessage());
+      }
+    }
   }
 
   @Override
@@ -88,17 +117,24 @@ public class LanceSubscriber implements Subscriber {
 
   @Override
   public Message receive() {
-    byte[] buffer = new byte[1024];
     Message receivedMessage = null;
     try {
-      DatagramPacket packet = new DatagramPacket(buffer, buffer.length, address, receivePort);
-      socket.receive(packet);
-      byte[] receivedBytes = new byte[packet.getLength()];
-      System.arraycopy(packet.getData(), 0, receivedBytes, 0, packet.getLength());
+      while (packets.isEmpty() && isRunning) {
+        Thread.sleep(100);
+      }
+
+      DatagramPacket packetFromQueue = packets.poll();
+      if (packetFromQueue == null) {
+        return null;
+      }
+      byte[] receivedBytes = new byte[packetFromQueue.getLength()];
+      System.arraycopy(packetFromQueue.getData(), 0, receivedBytes, 0,
+          packetFromQueue.getLength());
       receivedMessage = mapper.readValue(receivedBytes, DataMessage.class);
-      LOGGER.info("Lance Subscribe received -> " + receivedMessage);
-    } catch (IOException e) {
-      LOGGER.warning("Error receiving datagram :: " + e.getMessage());
+      LOGGER.info(count++ + " Lance Subscribe received -> " + receivedMessage);
+
+    } catch (Exception e) {
+      LOGGER.warning("Error reading receive queue :: " + e.getMessage());
     }
     return receivedMessage;
   }
@@ -127,8 +163,15 @@ public class LanceSubscriber implements Subscriber {
   public void close() {
     System.out.println(this.getClass().getSimpleName() + " closed");
     isRunning = false;
-    if (socket != null)
-      socket.close();
+    try {
+      receivePacketFuture.get(1, TimeUnit.SECONDS);
+    } catch (Exception e) {
+
+    } finally {
+      if (socket != null) {
+        socket.close();
+      }
+    }
   }
 
   @Override

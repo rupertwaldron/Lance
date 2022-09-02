@@ -1,6 +1,9 @@
 package com.ruppyrup.lance.cucumber.stepDefs;
 
+import static com.ruppyrup.lance.utils.LanceLogger.LOGGER;
+
 import com.ruppyrup.lance.LanceApplication;
+import com.ruppyrup.lance.models.DataMessage;
 import com.ruppyrup.lance.models.Message;
 import com.ruppyrup.lance.publisher.LancePublisher;
 import com.ruppyrup.lance.subscriber.LanceSubscriber;
@@ -8,6 +11,7 @@ import io.cucumber.java.After;
 import io.cucumber.java.Before;
 import io.cucumber.java.en.And;
 import io.cucumber.java.en.Given;
+import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import java.net.UnknownHostException;
 import java.util.List;
@@ -17,6 +21,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
+import org.junit.jupiter.api.Assertions;
 
 public class PerformanceStepdefs {
 
@@ -43,7 +48,6 @@ public class PerformanceStepdefs {
   @Given("the lance broker is running")
   public void theLanceBrokerIsRunning() {
 
-
   }
 
   @And("a subscriber is created with listening port {int} with name {string} on subPort {int}")
@@ -57,7 +61,8 @@ public class PerformanceStepdefs {
   }
 
   @When("{int} publishers send the message {string} to Lance Broker {int} time(s)")
-  public void aPublisherSendsTheMessageToLanceBroker(int publisherCount, String messageData, int messageCount)
+  public void aPublisherSendsTheMessageToLanceBroker(int publisherCount, String messageData,
+      int messageCount)
       throws InterruptedException {
 
     Message message = TestData.getData(messageData, Message.class);
@@ -77,7 +82,7 @@ public class PerformanceStepdefs {
                     var publisher = new LancePublisher(4445);
                     publisher.start();
                     for (int i = 0; i < messageCount; i++) {
-                      Thread.sleep(10);
+//                      Thread.sleep(10);
                       publisher.publish(message);
                     }
                   } catch (Exception e) {

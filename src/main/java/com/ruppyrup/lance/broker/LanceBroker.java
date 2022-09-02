@@ -10,6 +10,7 @@ import com.ruppyrup.lance.subscribers.LanceSubscriberInfo;
 import com.ruppyrup.lance.subscribers.SubscriberInfo;
 import com.ruppyrup.lance.transceivers.Transceiver;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -22,16 +23,18 @@ public class LanceBroker implements Broker {
 
   // todo need a de-register method
 
-//  private static final Logger LOGGER = Logger.getLogger(LanceBroker.class.getName());
   private static final ObjectMapper mapper = new ObjectMapper();
   private static LanceBroker lanceBrokerInstance;
   private Transceiver msgTransceiver;
   private Transceiver subTransceiver;
-  private boolean stopped = false;
+  private volatile boolean stopped = false;
 
   private final Map<Topic, Queue<Message>> receivedMessages = new ConcurrentHashMap<>();
 
   private final Map<Topic, List<SubscriberInfo>> subscribers = new ConcurrentHashMap<>();
+
+  private volatile int count = 1;
+  private volatile int pubCount = 1;
 
   private LanceBroker() {
   }
@@ -51,7 +54,7 @@ public class LanceBroker implements Broker {
     }
 
     Message message = optionalMessage.get();
-    LOGGER.info("Message received from publisher :: " + message.getContents());
+    LOGGER.info(pubCount++ + " Message received from publisher :: " + message.getContents());
     Topic topic = message.getTopic();
 
     if (receivedMessages.containsKey(topic)) {
@@ -72,7 +75,7 @@ public class LanceBroker implements Broker {
         if (subList == null) {
           break;
         }
-        LOGGER.info("Sending message to following subscribers :: " + subList);
+        LOGGER.info(count++ + " Sending message to following subscribers :: " + subList);
         msgTransceiver.send(message, subList);
         entry.getValue().poll();
       }

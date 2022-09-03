@@ -1,5 +1,7 @@
 package com.ruppyrup.lance;
 
+import static com.ruppyrup.lance.utils.LanceLogger.LOGGER;
+
 import com.ruppyrup.lance.broker.Broker;
 import com.ruppyrup.lance.broker.LanceBroker;
 import com.ruppyrup.lance.transceivers.MsgTransceiver;
@@ -20,7 +22,7 @@ public class LanceApplication implements Closeable {
   private ScheduledExecutorService service;
   private CompletableFuture<Void> subscriberFuture;
   private CompletableFuture<Void> receiverFuture;
-  private final ExecutorService executorService = Executors.newFixedThreadPool(3);
+  private final ExecutorService executorService = Executors.newFixedThreadPool(4);
 
   public void start() throws SocketException, UnknownHostException {
     Broker broker = LanceBroker.getInstance();
@@ -34,8 +36,9 @@ public class LanceApplication implements Closeable {
     service = Executors.newSingleThreadScheduledExecutor();
 
     service.scheduleAtFixedRate(() -> {
-          LanceBroker.getInstance().send();
-        }, 0, 1000, TimeUnit.MILLISECONDS);
+      LOGGER.info("Send Scheduler starting up");
+      LanceBroker.getInstance().send();
+    }, 0, 1000, TimeUnit.MILLISECONDS);
 
     subscriberFuture = CompletableFuture.runAsync(
         () -> {

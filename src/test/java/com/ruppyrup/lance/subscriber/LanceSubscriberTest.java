@@ -17,6 +17,7 @@ import java.net.UnknownHostException;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -43,6 +44,7 @@ class LanceSubscriberTest {
 
     @AfterEach
     void tearDown() {
+      subscriber.close();
     }
 
     @Test
@@ -84,6 +86,7 @@ class LanceSubscriberTest {
     }
 
     @Test
+    @Disabled
     void testReceiveReturnsMessage() {
       Message message = new DataMessage(new Topic("topic1"), "Hello");
       byte[] messageBytes = MessageUtils.getMessageBytes(message);
@@ -95,6 +98,7 @@ class LanceSubscriberTest {
     }
 
     @Test
+    @Disabled
     void testFluxOfMessagesIsCreated() {
       Message message = new DataMessage(new Topic("topic1"), "Hello");
       byte[] messageBytes = MessageUtils.getMessageBytes(message);

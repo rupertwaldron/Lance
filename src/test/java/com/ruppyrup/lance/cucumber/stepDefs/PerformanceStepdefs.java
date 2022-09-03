@@ -82,6 +82,7 @@ public class PerformanceStepdefs {
                     var publisher = new LancePublisher(4445);
                     publisher.start();
                     for (int i = 0; i < messageCount; i++) {
+//                      message.setContents(i + 1 + " message");
 //                      Thread.sleep(10);
                       publisher.publish(message);
                     }

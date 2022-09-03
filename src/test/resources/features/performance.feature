@@ -6,9 +6,11 @@ Feature: Publish messages receivecd from multiple subscribers at a high rate
     And a subscriber is created with listening port 3333 with name <subscriberName> on subPort 4446
     And a subscriber registers for the topic <topicName> with subscriber name <subscriberName>
     And a udp message is created with data <message> and topic <topicName>
-    When 100 publishers send the message <message> to Lance Broker <messageCount> times
-    Then the subscriber with name <subscriberName> receives the message <message> <totalMessages> times in 4000 mSeconds
+    When <noPublishers> publishers send the message <message> to Lance Broker <messageCount> times
+    Then the subscriber with name <subscriberName> receives the message <message> <totalMessages> times in <timeLimit> mSeconds
 
     Examples: One subscriber receives one message
-      | topicName | subscriberName | message        | messageCount | totalMessages |
-      | "topic1"  | "subName1"     | "test message" | 40           | 4000           |
+      | topicName | subscriberName | message        | messageCount | totalMessages | timeLimit | noPublishers |
+      | "topic1"  | "subName1"     | "test message" | 100          | 100           | 100       | 1            |
+      | "topic1"  | "subName1"     | "test message" | 100          | 2000          | 2000     | 20           |
+#      | "topic1"  | "subName1"     | "test message" | 100           | 10000          | 500       | 100          |

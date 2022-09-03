@@ -2,6 +2,7 @@ package com.ruppyrup.lance.publisher;
 
 import static com.ruppyrup.lance.utils.LanceLogger.LOGGER;
 
+import com.ruppyrup.lance.broker.Broker;
 import com.ruppyrup.lance.models.Message;
 import com.ruppyrup.lance.models.MessageUtils;
 import java.net.DatagramPacket;
@@ -9,13 +10,15 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.UnknownHostException;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class LancePublisher implements Publisher {
 
-//  private static final Logger LOGGER = Logger.getLogger(LancePublisher.class.getName());
   private final int port;
   private DatagramSocket socket;
   private final InetAddress address;
+
+  private static AtomicInteger counter = new AtomicInteger(1);
 
   public LancePublisher(int port) throws SocketException, UnknownHostException {
     this.port = port;
@@ -39,7 +42,7 @@ public class LancePublisher implements Publisher {
     try {
       byte[] dataToSend = MessageUtils.getMessageBytes(message);
       DatagramPacket packet = new DatagramPacket(dataToSend, dataToSend.length, address, port);
-      LOGGER.info("Publisher sending message to Broker :: " + message);
+      LOGGER.info(counter.getAndIncrement() + " Publisher sending message to Broker:: " + message);
       socket.send(packet);
     } catch (Exception ex) {
       LOGGER.warning("Publish has failed ... \n" + ex.getMessage());

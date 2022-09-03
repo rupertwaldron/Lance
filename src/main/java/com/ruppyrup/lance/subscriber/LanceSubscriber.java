@@ -125,6 +125,7 @@ public class LanceSubscriber implements Subscriber {
 
       DatagramPacket packetFromQueue = packets.poll();
       if (packetFromQueue == null) {
+        LOGGER.warning("Packet from queue in subscriber is empty :: " + packets.size());
         return null;
       }
       byte[] receivedBytes = new byte[packetFromQueue.getLength()];

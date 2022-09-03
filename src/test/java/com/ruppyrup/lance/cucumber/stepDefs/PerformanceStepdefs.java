@@ -102,4 +102,27 @@ public class PerformanceStepdefs {
 
     executorService.shutdown();
   }
+
+  @Then("the subscriber with name {string} receives the message {string} {int} time(s) in {int} mSeconds")
+  public void theSubscriberReceivesTheMessage(String subscriberName, String messageData,
+      int messageCount, int duration) {
+    LanceSubscriber lanceSubscriber = TestData.getData(subscriberName, LanceSubscriber.class);
+    DataMessage expectedMessage = TestData.getData(messageData, DataMessage.class);
+    int count = 0;
+    long start = 0;
+    for (int i = 0; i < messageCount; i++) {
+      count++;
+      Message receivedMessage = lanceSubscriber.receive();
+      if (i == 0) {
+        start = System.currentTimeMillis();
+        LOGGER.info("Start subscriber timer");
+      }
+      Assertions.assertEquals(expectedMessage, receivedMessage);
+    }
+    Assertions.assertEquals(messageCount, count);
+    long elapsed = System.currentTimeMillis() - start;
+    LOGGER.info("Finish subscriber timer");
+    System.out.println("Time to receive messages = " + elapsed + "[msec]");
+    Assertions.assertTrue(elapsed <= TimeUnit.NANOSECONDS.toNanos(duration));
+  }
 }

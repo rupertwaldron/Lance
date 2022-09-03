@@ -1,7 +1,5 @@
 package com.ruppyrup.lance.cucumber.stepDefs;
 
-import static com.ruppyrup.lance.utils.LanceLogger.LOGGER;
-
 import com.ruppyrup.lance.broker.LanceBroker;
 import com.ruppyrup.lance.models.DataMessage;
 import com.ruppyrup.lance.models.Message;
@@ -61,13 +59,13 @@ public class Stepdefs {
 
   @Given("Lance Broker is receiving {int} subscriptions")
   public void lanceBrokerIsReceivingUdpData(int subCount) {
-    CompletableFuture<Void> subscriberFuture = CompletableFuture.runAsync(
+    CompletableFuture<Void> registerSubscriberFuture = CompletableFuture.runAsync(
         () -> {
           for (int i = 0; i < subCount; i++) {
             LanceBroker.getInstance().register();
           }
         });
-    TestData.setData("subscriberFuture", subscriberFuture);
+    TestData.setData("registerSubscriberFuture", registerSubscriberFuture);
   }
 
   @Given("Lance Broker can receive {int} message(s)")
@@ -122,9 +120,9 @@ public class Stepdefs {
   @Then("{int} subscriber(s) will be found for topic {string}")
   public void theNumberOfSubscribersWillBeFoundForThatTopic(int subscriberCount, String topicName) {
     Topic topic = TestData.getData(topicName, Topic.class);
-    CompletableFuture<Void> subscriberFuture = TestData.getData("subscriberFuture",
+    CompletableFuture<Void> registerSubscriberFuture = TestData.getData("registerSubscriberFuture",
         CompletableFuture.class);
-    subscriberFuture.join();
+    registerSubscriberFuture.join();
     List<SubscriberInfo> subscribersByTopic = LanceBroker.getInstance()
         .getSubscribersByTopic(topic);
     Assertions.assertEquals(subscriberCount, subscribersByTopic.size());
@@ -132,9 +130,9 @@ public class Stepdefs {
 
   @Given("Lance Subscriber is receiving data")
   public void lanceSubscribeIsReceivingUdpData() {
-    CompletableFuture<Void> subscriberFuture = CompletableFuture.runAsync(
+    CompletableFuture<Void> registerSubscriberFuture = CompletableFuture.runAsync(
         () -> LanceBroker.getInstance().register());
-    TestData.setData("subscriberFuture", subscriberFuture);
+    TestData.setData("registerSubscriberFuture", registerSubscriberFuture);
   }
 
   @And("a subscriber is created with listening port {int} with name {string}")
@@ -147,26 +145,17 @@ public class Stepdefs {
     TestData.setData(subscriberName + "Port", port);
   }
 
-  @Then("the subscriber with name {string} receives the message {string} {int} time(s) in {int} mSeconds")
+  @Then("the subscriber with name {string} receives the message {string} {int} time(s)")
   public void theSubscriberReceivesTheMessage(String subscriberName, String messageData,
-      int messageCount, int duration) {
+      int messageCount) {
     LanceSubscriber lanceSubscriber = TestData.getData(subscriberName, LanceSubscriber.class);
     DataMessage expectedMessage = TestData.getData(messageData, DataMessage.class);
     int count = 0;
-    long start = 0;
     for (int i = 0; i < messageCount; i++) {
       count++;
       Message receivedMessage = lanceSubscriber.receive();
-      if (i == 0) {
-        start = System.currentTimeMillis();
-        LOGGER.info("Start subscriber timer");
-      }
       Assertions.assertEquals(expectedMessage, receivedMessage);
     }
     Assertions.assertEquals(messageCount, count);
-    long elapsed = System.currentTimeMillis() - start;
-    LOGGER.info("Finish subscriber timer");
-    System.out.println("Time to receive messages = " + elapsed + "[msec]");
-    Assertions.assertTrue(elapsed <= TimeUnit.NANOSECONDS.toNanos(duration));
   }
 }

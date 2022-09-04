@@ -1,7 +1,5 @@
 package com.ruppyrup.lance;
 
-import static com.ruppyrup.lance.utils.LanceLogger.LOGGER;
-
 import com.ruppyrup.lance.broker.Broker;
 import com.ruppyrup.lance.broker.LanceBroker;
 import com.ruppyrup.lance.transceivers.MsgTransceiver;
@@ -36,7 +34,7 @@ public class LanceApplication implements Closeable {
     service = Executors.newSingleThreadScheduledExecutor();
 
     service.scheduleAtFixedRate(() -> {
-      LOGGER.info("Send Scheduler starting up");
+//      LOGGER.info("Send Scheduler starting up");
       LanceBroker.getInstance().send();
     }, 0, 1000, TimeUnit.MILLISECONDS);
 

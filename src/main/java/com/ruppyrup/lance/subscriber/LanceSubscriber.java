@@ -102,8 +102,7 @@ public class LanceSubscriber implements Subscriber {
     Message message = new DataMessage(topic, subscriberInfo.toJsonString());
     try {
       byte[] dataToSend = getMessageBytes(message);
-      DatagramPacket packet = new DatagramPacket(dataToSend, dataToSend.length, address,
-          lanceSubPort);
+      DatagramPacket packet = new DatagramPacket(dataToSend, dataToSend.length, address, lanceSubPort);
       socket.send(packet);
     } catch (Exception ex) {
       LOGGER.warning("Publish has failed ... \n" + ex.getMessage());
@@ -179,17 +178,18 @@ public class LanceSubscriber implements Subscriber {
   public int getReceivePort() {
     return receivePort;
   }
-  //  public static void main(String[] args) throws SocketException, UnknownHostException {
-//    LanceSubscriber subscriber = new LanceSubscriber(6161);
-//    Flux<Message> udpFlux = subscriber.createUdpFlux();
-//    subscriber.subscribe("rubsub", new Topic("monkey-topic"));
-//
-//    udpFlux.subscribe(
-//        subscriber::handleMessage,
-//        err -> System.out.println("Error: " + err.getMessage()),
-//        () -> {
-//          System.out.println("Done!");
-//          subscriber.close();
-//        });
-//  }
+    public static void main(String[] args) throws SocketException, UnknownHostException {
+    LanceSubscriber subscriber = new LanceSubscriber(4446);
+    subscriber.start();
+    Flux<Message> udpFlux = subscriber.createUdpFlux();
+    subscriber.subscribe("rubsub", new Topic("monkey-topic"));
+
+    udpFlux.subscribe(
+        subscriber::handleMessage,
+        err -> System.out.println("Error: " + err.getMessage()),
+        () -> {
+          System.out.println("Done!");
+          subscriber.close();
+        });
+  }
 }

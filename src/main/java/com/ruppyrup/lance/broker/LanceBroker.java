@@ -17,6 +17,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Semaphore;
 import java.util.logging.Logger;
 
 public class LanceBroker implements Broker {
@@ -32,6 +33,9 @@ public class LanceBroker implements Broker {
   private final Map<Topic, Queue<Message>> receivedMessages = new ConcurrentHashMap<>();
 
   private final Map<Topic, List<SubscriberInfo>> subscribers = new ConcurrentHashMap<>();
+
+  Semaphore full = new Semaphore(0);
+  Semaphore empty = new Semaphore(1);
 
   private volatile int count = 1;
   private volatile int pubCount = 1;
@@ -57,6 +61,12 @@ public class LanceBroker implements Broker {
     LOGGER.info(pubCount++ + " Message received from publisher :: " + message.getContents());
     Topic topic = message.getTopic();
 
+    try {
+      empty.acquire();
+    } catch (InterruptedException e) {
+      LOGGER.warning("receiver could not acquire lock empty");
+    }
+
     if (receivedMessages.containsKey(topic)) {
       receivedMessages.get(topic).add(message);
     } else {
@@ -64,10 +74,17 @@ public class LanceBroker implements Broker {
       topicMessages.add(message);
       receivedMessages.put(topic, topicMessages);
     }
+
+    full.release(); // release the lock to say there is a message
   }
 
   @Override
   public void send() {
+    try {
+      full.acquire();
+    } catch (InterruptedException e) {
+      LOGGER.warning("sender could not acquire full lock");
+    }
     for (var entry : receivedMessages.entrySet()) {
       while (!entry.getValue().isEmpty()) {
         Message message = entry.getValue().peek();
@@ -80,6 +97,7 @@ public class LanceBroker implements Broker {
         entry.getValue().poll();
       }
     }
+    empty.release();
   }
 
   @Override
@@ -122,7 +140,7 @@ public class LanceBroker implements Broker {
   }
 
   @Override
-  public void close() {
+  public void close()  {
     if (subTransceiver != null) {
       subTransceiver.close();
     }
@@ -130,7 +148,14 @@ public class LanceBroker implements Broker {
       msgTransceiver.close();
     }
     stopped = true;
-    receivedMessages.clear();
+    while(!receivedMessages.isEmpty()) {
+      try {
+        Thread.sleep(1000);
+      } catch (InterruptedException e) {
+        throw new RuntimeException(e);
+      }
+    }
+//    receivedMessages.clear();
     subscribers.clear();
   }
 

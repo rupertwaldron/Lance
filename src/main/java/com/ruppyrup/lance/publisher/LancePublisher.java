@@ -3,14 +3,18 @@ package com.ruppyrup.lance.publisher;
 import static com.ruppyrup.lance.utils.LanceLogger.LOGGER;
 
 import com.ruppyrup.lance.broker.Broker;
+import com.ruppyrup.lance.models.DataMessage;
 import com.ruppyrup.lance.models.Message;
 import com.ruppyrup.lance.models.MessageUtils;
+import com.ruppyrup.lance.models.Topic;
+
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.IntStream;
 
 public class LancePublisher implements Publisher {
 
@@ -56,12 +60,13 @@ public class LancePublisher implements Publisher {
       socket.close();
   }
 
-//  public static void main(String[] args) throws SocketException, UnknownHostException {
-//    LancePublisher publisher = new LancePublisher();
-//    IntStream.range(0, 990)
-//        .mapToObj(i -> "Hello from publisher on monkey-topic " + i)
-//        .forEach(message -> publisher.publish(new DataMessage(new Topic("monkey-topic"), message)));
-//    publisher.close();
-//  }
+  public static void main(String[] args) throws SocketException, UnknownHostException {
+    LancePublisher publisher = new LancePublisher(4445);
+    publisher.start();
+    IntStream.range(0, 990)
+        .mapToObj(i -> "Hello from publisher on monkey-topic " + i)
+        .forEach(message -> publisher.publish(new DataMessage(new Topic("monkey-topic"), message)));
+    publisher.close();
+  }
 
 }

@@ -14,10 +14,12 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Logger;
 
 public class LanceApplication implements Closeable {
 
-  private ScheduledExecutorService service;
+//  private ScheduledExecutorService service;
+  private Thread sender;
   private CompletableFuture<Void> subscriberFuture;
   private CompletableFuture<Void> receiverFuture;
   private final ExecutorService executorService = Executors.newFixedThreadPool(4);
@@ -31,12 +33,21 @@ public class LanceApplication implements Closeable {
         InetAddress.getLocalHost(), 4446);
     LanceBroker.getInstance().setSubTransceiver(subTransceiver);
 
-    service = Executors.newSingleThreadScheduledExecutor();
+//    service = Executors.newSingleThreadScheduledExecutor();
 
-    service.scheduleAtFixedRate(() -> {
-//      LOGGER.info("Send Scheduler starting up");
-      LanceBroker.getInstance().send();
-    }, 0, 1000, TimeUnit.MILLISECONDS);
+//    service.scheduleAtFixedRate(() -> {
+////      LOGGER.info("Send Scheduler starting up");
+//      LanceBroker.getInstance().send();
+//    }, 0, 1000, TimeUnit.MILLISECONDS);
+
+    sender = new Thread(() -> {
+      while(LanceBroker.getInstance().isRunning()) {
+        LanceBroker.getInstance().send();
+      }
+    });
+
+//    sender.setDaemon(true);
+    sender.start();
 
     subscriberFuture = CompletableFuture.runAsync(
         () -> {
@@ -51,6 +62,7 @@ public class LanceApplication implements Closeable {
             LanceBroker.getInstance().receive();
           }
         }, executorService);
+
   }
 
   public static void main(String[] args) {
@@ -87,7 +99,11 @@ public class LanceApplication implements Closeable {
     LanceBroker.getInstance().close();
     subscriberFuture.join();
     receiverFuture.join();
+    try {
+      sender.join(2000);
+    } catch (InterruptedException e) {
+      throw new RuntimeException(e);
+    }
     executorService.shutdownNow();
-    service.shutdownNow();
   }
 }

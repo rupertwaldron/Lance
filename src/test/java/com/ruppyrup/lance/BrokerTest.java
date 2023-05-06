@@ -14,6 +14,8 @@ import com.ruppyrup.lance.transceivers.Transceiver;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.Semaphore;
+
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -24,7 +26,7 @@ import org.junit.jupiter.api.Test;
 class BrokerTest {
 
   private MockTransceiver udpTransceiver;
-  private Broker lanceBroker;
+  private LanceBroker lanceBroker;
 
   @Test
   void testOnlyOneInstanceOfBrokerIsCreated() {
@@ -46,6 +48,7 @@ class BrokerTest {
 
     @Test
     void testBrokerCanReceiveUdpPackets() {
+      lanceBroker.setEmpty(new Semaphore(2));
       String expected1 = "expected1";
       Topic topic1 = new Topic("Test1");
       setTransceiverMessageString(topic1, expected1);
@@ -76,6 +79,7 @@ class BrokerTest {
 
     @Test
     void testBrokerStoresMessagesByTopic() {
+      lanceBroker.setEmpty(new Semaphore(2));
       setTransceiverMessageString(topic1, expected1);
       lanceBroker.receive();
       setTransceiverMessageString(topic2, expected2);
@@ -88,6 +92,7 @@ class BrokerTest {
 
     @Test
     void testBrokerStoresMultipleMessagesByTheSameTopic() {
+      lanceBroker.setEmpty(new Semaphore(2));
       setTransceiverMessageString(topic1, expected1);
       lanceBroker.receive();
       setTransceiverMessageString(topic1, expected2);
@@ -100,6 +105,7 @@ class BrokerTest {
 
     @Test
     void closeSocketsIsCalled() {
+      lanceBroker.clearMessages();
       lanceBroker.close();
       assertTrue(udpTransceiver.isClosed());
     }
@@ -131,6 +137,7 @@ class BrokerTest {
 
     @Test
     void testBrokerSendsStoredMessagesFromTheSameTopic() {
+      lanceBroker.setEmpty(new Semaphore(2));
       setTransceiverMessageString(topic1, expected1);
       lanceBroker.receive();
       setTransceiverMessageString(topic1, expected2);
@@ -141,6 +148,7 @@ class BrokerTest {
 
     @Test
     void testBrokerSendsStoredMessagesFromTheDifferentTopics() {
+      lanceBroker.setEmpty(new Semaphore(2));
       setTransceiverMessageString(topic1, expected1);
       lanceBroker.receive();
       setTransceiverMessageString(topic2, expected2);

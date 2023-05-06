@@ -39,6 +39,7 @@ public class Stepdefs {
 
   @After("@Standard")
   public void teardown() {
+    LanceBroker.getInstance().clearMessages();
     LanceBroker.getInstance().close();
     TestData.getData("schedulerService", ScheduledExecutorService.class).shutdownNow();
     TestData.clear();

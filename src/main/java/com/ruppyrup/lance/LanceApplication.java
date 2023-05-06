@@ -96,6 +96,7 @@ public class LanceApplication implements Closeable {
   @Override
   public void close() {
     System.out.println("Closing Lance");
+    LanceBroker.getInstance().clearMessages();
     LanceBroker.getInstance().close();
     subscriberFuture.join();
     receiverFuture.join();

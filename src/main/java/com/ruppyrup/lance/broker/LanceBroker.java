@@ -10,7 +10,6 @@ import com.ruppyrup.lance.subscribers.LanceSubscriberInfo;
 import com.ruppyrup.lance.subscribers.SubscriberInfo;
 import com.ruppyrup.lance.transceivers.Transceiver;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -18,7 +17,6 @@ import java.util.Optional;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Semaphore;
-import java.util.logging.Logger;
 
 public class LanceBroker implements Broker {
 
@@ -82,22 +80,24 @@ public class LanceBroker implements Broker {
   public void send() {
     try {
       full.acquire();
+      for (var entry : receivedMessages.entrySet()) {
+        while (!entry.getValue().isEmpty()) {
+          Message message = entry.getValue().peek();
+          List<SubscriberInfo> subList = subscribers.get(message.getTopic());
+          if (subList == null) {
+            break;
+          }
+          LOGGER.info(count++ + " Sending message to following subscribers :: " + subList);
+          msgTransceiver.send(message, subList);
+          entry.getValue().poll();
+        }
+      }
     } catch (InterruptedException e) {
       LOGGER.warning("sender could not acquire full lock");
+    } finally {
+      full.release(); // only here if no subscribers and messages left
+      empty.release();
     }
-    for (var entry : receivedMessages.entrySet()) {
-      while (!entry.getValue().isEmpty()) {
-        Message message = entry.getValue().peek();
-        List<SubscriberInfo> subList = subscribers.get(message.getTopic());
-        if (subList == null) {
-          break;
-        }
-        LOGGER.info(count++ + " Sending message to following subscribers :: " + subList);
-        msgTransceiver.send(message, subList);
-        entry.getValue().poll();
-      }
-    }
-    empty.release();
   }
 
   @Override
@@ -155,12 +155,16 @@ public class LanceBroker implements Broker {
         throw new RuntimeException(e);
       }
     }
-//    receivedMessages.clear();
     subscribers.clear();
   }
 
   public boolean isRunning() {
     return !stopped;
+  }
+
+  @Override
+  public void clearMessages() {
+    receivedMessages.clear();
   }
 
   @Override
@@ -188,5 +192,13 @@ public class LanceBroker implements Broker {
       System.out.println(key);
       value.forEach(System.out::println);
     });
+  }
+
+  public void setFull(Semaphore full) {
+    this.full = full;
+  }
+
+  public void setEmpty(Semaphore empty) {
+    this.empty = empty;
   }
 }

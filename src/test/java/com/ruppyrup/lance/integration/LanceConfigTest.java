@@ -65,6 +65,7 @@ class LanceConfigTest {
     Message message = new DataMessage(topic, "Info from topic cart");
     System.out.println("Test is publishing message :: " + message);
     subscriber.subscribe("sub1", topic);
+    Thread.sleep(1000);
     publisher.publish(message);
     Message receivedMessage = subscriber.receive();
     Assertions.assertThat(receivedMessage).isEqualTo(message);

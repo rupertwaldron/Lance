@@ -95,7 +95,7 @@ public class LanceBroker implements Broker {
     } catch (InterruptedException e) {
       LOGGER.warning("sender could not acquire full lock");
     } finally {
-      full.release(); // only here if no subscribers and messages left
+//      full.release(); // only here if no subscribers and messages left
       empty.release();
     }
   }

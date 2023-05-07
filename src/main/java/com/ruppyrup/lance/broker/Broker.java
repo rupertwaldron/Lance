@@ -16,6 +16,8 @@ public interface Broker extends Closeable {
 
   void clearMessages();
 
+  void clearSubscribers();
+
   void setSubTransceiver(Transceiver subTransceiver);
   void setMsgTransceiver(Transceiver msgTransceiver);
   Optional<Message> getNextMessageForTopic(Topic topic);

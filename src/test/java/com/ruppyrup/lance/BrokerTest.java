@@ -117,7 +117,7 @@ class BrokerTest {
   }
 
   @Nested
-  @DisplayName("Process message tests")
+  @DisplayName("Message Sending tests")
   class MessageSendingTests {
 
     private final String expected1 = "expected1";
@@ -125,18 +125,33 @@ class BrokerTest {
     private Topic topic1;
     private Topic topic2;
 
+    private MockSubTransceiver subTransceiver;
+
     @BeforeEach
     private void setup() {
       udpTransceiver = new MockTransceiver();
+      subTransceiver = new MockSubTransceiver();
       lanceBroker = LanceBroker.getInstance();
       lanceBroker.setMsgTransceiver(udpTransceiver);
+      lanceBroker.setSubTransceiver(subTransceiver);
       topic1 = new Topic("Test1");
       topic2 = new Topic("Test2");
     }
 
+    @AfterEach
+    private void tearDown() {
+      subTransceiver.clearMessages();
+      udpTransceiver.clearMessages();
+      lanceBroker.clearSubscribers();
+      lanceBroker.clearMessages();
+    }
 
     @Test
     void testBrokerSendsStoredMessagesFromTheSameTopic() {
+      SubscriberInfo subscribe = new LanceSubscriberInfo("sub1", 1001);
+      Message subMessage = new DataMessage(topic1, subscribe.toJsonString());
+      subTransceiver.setMessage(subMessage);
+      lanceBroker.register();
       lanceBroker.setEmpty(new Semaphore(2));
       setTransceiverMessageString(topic1, expected1);
       lanceBroker.receive();
@@ -148,6 +163,15 @@ class BrokerTest {
 
     @Test
     void testBrokerSendsStoredMessagesFromTheDifferentTopics() {
+      SubscriberInfo subscribe1 = new LanceSubscriberInfo("sub1", 1001);
+      SubscriberInfo subscribe2 = new LanceSubscriberInfo("sub2", 1002);
+      Message subMessage1 = new DataMessage(topic1, subscribe1.toJsonString());
+      Message subMessage2 = new DataMessage(topic2, subscribe2.toJsonString());
+      subTransceiver.setMessage(subMessage1);
+      subTransceiver.setMessage(subMessage2);
+      lanceBroker.register();
+      lanceBroker.register();
+
       lanceBroker.setEmpty(new Semaphore(2));
       setTransceiverMessageString(topic1, expected1);
       lanceBroker.receive();
@@ -179,8 +203,10 @@ class BrokerTest {
 
     @AfterEach
     private void tearDown() {
-      if (lanceBroker.getSubscribersByTopic(topic1) != null) lanceBroker.getSubscribersByTopic(topic1).clear();
-      if (lanceBroker.getSubscribersByTopic(topic2) != null) lanceBroker.getSubscribersByTopic(topic2).clear();
+      subTransceiver.clearMessages();
+      udpTransceiver.clearMessages();
+      lanceBroker.clearSubscribers();
+      lanceBroker.clearMessages();
     }
 
     @Test
@@ -279,6 +305,10 @@ class MockTransceiver implements Transceiver {
   public void setMessage(Message message) {
     messages.add(message);
   }
+
+  public void clearMessages() {
+    messages.clear();
+  }
 }
 
 class MockSubTransceiver implements Transceiver {
@@ -316,5 +346,9 @@ class MockSubTransceiver implements Transceiver {
 
   public void setMessage(Message message) {
     messages.add(message);
+  }
+
+  public void clearMessages() {
+    messages.clear();
   }
 }

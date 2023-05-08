@@ -13,6 +13,7 @@ import com.ruppyrup.lance.transceivers.Transceiver;
 import java.util.*;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class LanceBroker implements Broker {
@@ -30,11 +31,13 @@ public class LanceBroker implements Broker {
     private final Map<Topic, List<SubscriberInfo>> subscribers = new HashMap<>();
 
     Semaphore full = new Semaphore(0);
-    Semaphore empty = new Semaphore(1);
+    Semaphore empty = new Semaphore(8);
 
     ReentrantReadWriteLock reentrantReadWriteLock = new ReentrantReadWriteLock();
-    Lock readLock = reentrantReadWriteLock.readLock();
-    Lock writeLock = reentrantReadWriteLock.writeLock();
+    Lock subReadLock = reentrantReadWriteLock.readLock();
+    Lock subWriteLock = reentrantReadWriteLock.writeLock();
+
+    Lock multiThreadLock = new ReentrantLock();
 
     private volatile int count = 1;
     private volatile int pubCount = 1;
@@ -66,6 +69,7 @@ public class LanceBroker implements Broker {
         } catch (InterruptedException e) {
             LOGGER.warning("receiver could not acquire lock empty");
         }
+        multiThreadLock.lock();
 
         if (receivedMessages.containsKey(topic)) {
             receivedMessages.get(topic).add(message);
@@ -74,7 +78,7 @@ public class LanceBroker implements Broker {
             topicMessages.add(message);
             receivedMessages.put(topic, topicMessages);
         }
-
+        multiThreadLock.unlock();
         full.release(); // release the lock to say there is a message
     }
 
@@ -82,10 +86,11 @@ public class LanceBroker implements Broker {
     public void send() {
         try {
             full.acquire();
+            multiThreadLock.lock();
             for (var entry : receivedMessages.entrySet()) {
                 while (!entry.getValue().isEmpty()) {
                     Message message = entry.getValue().peek();
-                    readLock.lock();
+                    subReadLock.lock();
                     try {
                         List<SubscriberInfo> subList = new ArrayList<>(subscribers.get(message.getTopic()));
                         LOGGER.info(count++ + " Sending message to following subscribers :: " + subList);
@@ -94,7 +99,7 @@ public class LanceBroker implements Broker {
                     } catch (NullPointerException npe) {
                         // ignore as no subscribers
                     } finally {
-                        readLock.unlock();
+                        subReadLock.unlock();
                     }
                 }
             }
@@ -102,6 +107,7 @@ public class LanceBroker implements Broker {
             LOGGER.warning("sender could not acquire full lock");
         } finally {
 //      full.release(); // only here if no subscribers and messages left
+            multiThreadLock.unlock();
             empty.release();
         }
     }
@@ -127,42 +133,42 @@ public class LanceBroker implements Broker {
         }
 
         if (subscribers.containsKey(topic)) {
-            readLock.lock();
+            subReadLock.lock();
             List<SubscriberInfo> prevRegisterSubscribersWithSameName;
             try {
                 prevRegisterSubscribersWithSameName = subscribers.get(topic).stream()
                         .filter(sub -> sub.getSubscriberName().equals(subscriberInfo.getSubscriberName()))
                         .toList();
             } finally {
-                readLock.unlock();
+                subReadLock.unlock();
             }
 
             try {
-                writeLock.lock();
+                subWriteLock.lock();
                 prevRegisterSubscribersWithSameName.forEach(removeSub -> subscribers.get(topic).remove(removeSub));
 
                 subscribers.get(topic).add(subscriberInfo);
             } finally {
-                writeLock.unlock();
+                subWriteLock.unlock();
             }
         } else {
             List<SubscriberInfo> subscribeList = new ArrayList<>();
             try {
-                writeLock.lock();
+                subWriteLock.lock();
                 subscribeList.add(subscriberInfo);
                 subscribers.put(topic, subscribeList);
             } finally {
-                writeLock.unlock();
+                subWriteLock.unlock();
             }
         }
     }
 
     private boolean alreadyRegisteredThenDeRegister(Topic topic, SubscriberInfo subscriberInfo) {
         try {
-            readLock.lock();
+            subWriteLock.lock();
             remove = subscribers.get(topic).remove(subscriberInfo);
         } finally {
-            writeLock.unlock();
+            subWriteLock.unlock();
         }
         return remove;
     }
@@ -183,12 +189,7 @@ public class LanceBroker implements Broker {
                 throw new RuntimeException(e);
             }
         }
-        writeLock.lock();
-        try {
-            subscribers.clear();
-        } finally {
-            writeLock.unlock();
-        }
+        clearSubscribers();
     }
 
     public boolean isRunning() {
@@ -202,7 +203,12 @@ public class LanceBroker implements Broker {
 
     @Override
     public void clearSubscribers() {
-        subscribers.clear();
+        subWriteLock.lock();
+        try {
+            subscribers.clear();
+        } finally {
+            subWriteLock.unlock();
+        }
     }
 
     @Override
@@ -222,25 +228,25 @@ public class LanceBroker implements Broker {
 
     @Override
     public List<SubscriberInfo> getSubscribersByTopic(Topic topic) {
-        readLock.lock();
+        subReadLock.lock();
         List<SubscriberInfo> subscriberInfos = null;
         try {
             subscriberInfos = new ArrayList<>(subscribers.get(topic));
         } catch (NullPointerException npe) {
             // ignore because no subscribers
         } finally {
-            readLock.unlock();
+            subReadLock.unlock();
         }
         return subscriberInfos;
     }
 
     public void listTopics() {
-        readLock.lock();
+        subReadLock.lock();
         subscribers.forEach((key, value) -> {
             System.out.println(key);
             value.forEach(System.out::println);
         });
-        readLock.unlock();
+        subReadLock.unlock();
     }
 
     public void setFull(Semaphore full) {

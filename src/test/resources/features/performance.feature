@@ -11,6 +11,6 @@ Feature: Publish messages receivecd from multiple subscribers at a high rate
 
     Examples: One subscriber receives one message
       | topicName | subscriberName | message        | messageCount | totalMessages | timeLimit | noPublishers |
-#      | "topic1"  | "subName1"     | "test message" | 100          | 100           | 500       | 1            |
-#      | "topic1"  | "subName1"     | "test message" | 100          | 2000          | 2000      | 20           |
-      | "topic1"  | "subName1"     | "test message" | 100          | 10000         | 5000      | 100          |
+      | "topic1"  | "subName1"     | "test message" | 100          | 100           | 500       | 1            |
+      | "topic1"  | "subName1"     | "test message" | 100          | 2000          | 2000      | 20           |
+#      | "topic1"  | "subName1"     | "test message" | 100          | 10000         | 5000      | 100          |

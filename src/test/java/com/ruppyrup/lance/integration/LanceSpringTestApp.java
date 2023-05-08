@@ -5,7 +5,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Import;
 
 @SpringBootApplication
-@Import(LanceConfig.class)
+//@Import(LanceConfig.class)
 public class LanceSpringTestApp {
 
 }

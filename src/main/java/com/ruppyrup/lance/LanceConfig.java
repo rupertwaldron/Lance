@@ -6,10 +6,12 @@ import com.ruppyrup.lance.subscriber.LanceSubscriber;
 import com.ruppyrup.lance.subscriber.Subscriber;
 import java.net.SocketException;
 import java.net.UnknownHostException;
+
+import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-@Configuration
+@AutoConfiguration
 public class LanceConfig {
 
   @Bean(destroyMethod = "close")
